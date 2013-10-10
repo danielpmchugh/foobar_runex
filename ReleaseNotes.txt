@@ -1,0 +1,23 @@
+Still working on...
+Text in button matches that of File->Preferences->Default User Interface-> Colors and Fonts
+Blank text in preferences then display RunEx
+Hover Functionality
+Additional Error Handling
+Running with UI Columns component
+Sizing issues with fonts of larger sizes
+
+Release Notes 0.0.2
+Fixed by where tool button was not appearing for windows builds prior to Window's Vista
+Button can now be added/removed using the toolbar context menu 
+Code check in to  https://github.com/danielpmchugh/foobar_runex.git
+
+Release Notes 0.0.1
+New Preference page for RunEx component.
+Ability to chose either text or icon for button.
+Ability to configure button's name
+Ability to configure Image path (can be cursor, bitmap, or icon).
+Ability to configure Launch path 
+Relative and absolute paths work.
+
+RunEx is located in the toolbar to the right of the menu. 
+Click button launches command specified by the path in preferences.
