@@ -47,6 +47,9 @@ private:
 	~CRunExWnd() {}
 
 	void UpdateCntrl();
+	void ResizeBand (int cx);
+	HICON CreateIcon (CSize * pSize);
+
 
 	void set_selection(metadb_handle_list_cref p_items);
 

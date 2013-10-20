@@ -4,7 +4,12 @@ Blank text in preferences then display RunEx
 Hover Functionality
 Additional Error Handling
 Running with UI Columns component
-Sizing issues with fonts of larger sizes
+After reset button is lost
+Cleanup preferences text
+
+
+Release Notes 0.0.3
+Sizing improvement for both text and images
 
 Release Notes 0.0.2
 Fixed by where tool button was not appearing for windows builds prior to Window's Vista

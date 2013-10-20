@@ -50,22 +50,20 @@ HWND CRunExWnd::Create(HWND p_hWndParent) {
 	tWnd = cWnd->FindWindowExW(hwndOwner,NULL,L"ATL:ReBarWindow32",NULL);
 	
 	hwndToolbar = tWnd->GetSafeHwnd();
-	// Create the rebar.
 	
+	// Create the rebar.	
 	hCmpWnd = super::Create(core_api::get_main_window(),
-		TEXT("RunExWnd"),
-		//WS_POPUP | WS_THICKFRAME | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU 
+		TEXT("RunExWnd"),		
 		NULL,
 		WS_EX_TRANSPARENT,
 		CW_USEDEFAULT, CW_USEDEFAULT, 200, 200);
-
 	CWnd *aWnd = CWnd::FromHandle(hCmpWnd);
 	aWnd->ShowWindow(SW_HIDE);
 
+
 	m_FirstToolBar.CreateEx(CWnd::FromHandle(hCmpWnd), TBSTYLE_FLAT | TBSTYLE_TRANSPARENT );
-	m_FirstToolBar.LoadToolBar(IDR_TOOLBAR1  );
-	m_FirstToolBar.SetButtonText(0, L"Launch");
-	m_FirstToolBar.SetButtonStyle (0, BS_PUSHBUTTON | BS_TOP | BS_TEXT);
+	m_FirstToolBar.LoadToolBar(IDR_TOOLBAR1);	
+	m_FirstToolBar.SetButtonStyle (0, BS_PUSHBUTTON | BS_BITMAP );
 	
     console::formatter() << "Created toolbar button" ;
 
@@ -78,11 +76,11 @@ HWND CRunExWnd::Create(HWND p_hWndParent) {
 	else
 	{
 		rbi.fMask = RBBIM_BACKGROUND | RBBIM_CHILD | RBBIM_CHILDSIZE | 
-		RBBIM_STYLE | RBBIM_TEXT;
+		RBBIM_STYLE ;
 		rbi.fStyle = RBBS_GRIPPERALWAYS| RBBS_CHILDEDGE;
-		rbi.cxMinChild = 60;
+		rbi.cxMinChild = 32;
 		rbi.lpText = _T("");
-		rbi.cx = 0;
+		rbi.cx = 32;
 		rbi.hwndChild = m_FirstToolBar.GetSafeHwnd();
 		hToolbar = hCmpWnd;
 	
@@ -90,22 +88,7 @@ HWND CRunExWnd::Create(HWND p_hWndParent) {
 			console::formatter() << "Failed to insert band";
 		else
 			console::formatter() << "Band inserted";
-
-		CToolBarCtrl& bar = m_FirstToolBar.GetToolBarCtrl();			
-		CImageList *pList = bar.GetImageList();
-		CBitmap bmp;
-		bmp.LoadMappedBitmap(IDB_BITMAP2);
-		int index = pList->Add(&bmp,(CBitmap*)(NULL));
- 		bar.SetImageList(pList);
-	
-		CRect temp;			
-		m_FirstToolBar.GetItemRect(0,&temp);
-		m_FirstToolBar.SetSizes(CSize(32+7,32+6),CSize(32,32));
-		m_FirstToolBar.SetButtonText(0,L"");
-		m_FirstToolBar.SetButtonInfo(0,ID_TB1_CMD1, TBBS_BUTTON,index);
-		m_FirstToolBar.Invalidate();
-
-
+		
 		UpdateCntrl ();		
 		
 	}
@@ -151,6 +134,28 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		else 
 			m_FirstToolBar.ShowWindow(SW_SHOW);
 		break;
+
+	case WM_NOTIFY:
+	   switch (((LPNMHDR)lParam)->code) 
+	   {// tooltip?
+		  case TTN_NEEDTEXT:
+		  {
+			 LPTOOLTIPTEXT lpToolTipText;
+			 // warning: static buffer not threadsafe
+			 static char szBuf[MAX_PATH];
+
+			 // Display the tooltip text.
+			 lpToolTipText = (LPTOOLTIPTEXT)lParam;
+//			 LoadString (hInst, 
+	//			lpToolTipText->hdr.idFrom,   // string ID == cmd ID
+		//		szBuf,
+			//	sizeof (szBuf) / sizeof (szBuf[0]));
+				//lpToolTipText->lpszText = szBuf;
+			 break;
+		  }
+	   }
+	   break;
+
 			
 	case WM_CONTEXT_MENU_FB:
 		//Try to grab the context menu
@@ -268,57 +273,36 @@ void CRunExWnd::Launch(UINT p)
 	}
 }
 
-void CRunExWnd::UpdateCntrl()
+HICON CRunExWnd::CreateIcon (CSize * pSize)
 {
-	bool bIsBtnText = CMyPreferences::cfg_IsBtnText;
-	std::wstring wBtnText, wImagePath;	
-	std::string sText = CMyPreferences::cfg_BtnText;
-	CMyPreferences::StringToWString (wBtnText, sText);		
-		
-	sText = CMyPreferences::cfg_ImageText;	
+	std::wstring wImagePath, wBtnText;	
+	HICON hIcon = NULL;
+
+	bool bIsBtnText = CMyPreferences::cfg_IsBtnText;	
+
+	std::string sText = CMyPreferences::cfg_ImageText;
 	CMyPreferences::StringToWString (wImagePath, sText);		
+
+	sText = CMyPreferences::cfg_BtnText;
+	CMyPreferences::StringToWString (wBtnText, sText);
 	
-	int iCnt = SendMessage(hwndToolbar, RB_GETBANDCOUNT, 0,0);
-
-	if (bIsBtnText) 
-	{ // If its text display the text instead of an image in the toolbar
-		
-		
-		CWnd * pWnd = CWnd::FromHandle(core_api::get_main_window());
-				
-		
-		m_FirstToolBar.SetSizes(CSize(32+7,32+6),CSize(1,1));
-		m_FirstToolBar.SetButtonInfo(0,ID_TB1_CMD1, TBBS_BUTTON,0);
-		m_FirstToolBar.SetButtonText(0, wBtnText.c_str());	
-		
-		/*NONCLIENTMETRICS a_stMetrics;
-		a_stMetrics.cbSize = sizeof( a_stMetrics );
-		SystemParametersInfo( SPI_GETNONCLIENTMETRICS, sizeof( a_stMetrics ), &a_stMetrics, 0 );
-		CFont a_oFont;
-		a_oFont.CreateFontIndirect( &a_stMetrics.lfSmCaptionFont );
-		m_FirstToolBar.SetFont( &a_oFont );*/
-
-		CSize size = m_FirstToolBar.GetDC()->GetTextExtent(wBtnText.c_str());						
-		//Todo index can change
-		SendMessage(hwndToolbar, RB_SETBANDWIDTH, (WPARAM)1, (LPARAM)size.cx);
-	}
-	else
-	{
-		HICON hIcon = NULL;
+	if (!bIsBtnText) 
+	{ 
 		// Try to Load the image from file-
 		std::wstring ext= wImagePath.substr(wImagePath.length()-4,4);
 		for (int i = 0; i < ext.length(); i++)
 			ext[i] =toupper(ext[i]);
+
 		if (ext.compare(L".ICO")==0)
 		{
-			hIcon = (HICON )::LoadImage(NULL, wImagePath.c_str(),
-				IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+			hIcon = (HICON )::LoadImage(NULL, wImagePath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+
+			
 		}
 		if (ext.compare(L".BMP")==0)
 		{
-			
-			HBITMAP bmp = (HBITMAP )::LoadImage(NULL, wImagePath.c_str(),
-				IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+			HBITMAP bmp = (HBITMAP )::LoadImage(NULL, wImagePath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
 			BITMAP bm;  
 			GetObject(bmp, sizeof(BITMAP), &bm);
@@ -326,7 +310,7 @@ void CRunExWnd::UpdateCntrl()
 			CBitmap * cBmp = CBitmap::FromHandle (bmp);
 			HBITMAP hbmMask = ::CreateCompatibleBitmap(::GetDC(NULL), 
 				bm.bmWidth, bm.bmHeight);
-			
+
 			ICONINFO ii = {0};
 			ii.fIcon    = TRUE;
 			ii.hbmColor = bmp;
@@ -337,46 +321,222 @@ void CRunExWnd::UpdateCntrl()
 		}
 		if (ext.compare(L".CUR")==0)
 		{
-			HCURSOR bmp = (HCURSOR)::LoadImage(NULL, wImagePath.c_str(),
+			HCURSOR cur = (HCURSOR)::LoadImage(NULL, wImagePath.c_str(),
 				IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE);
 			ICONINFO info = {0};
 			SIZE res = {0};
-			if ( ::GetIconInfo(bmp, &info)!=0 )
+			if ( ::GetIconInfo(cur, &info)!=0 )
 			{
 				hIcon = ::CreateIconIndirect(&info);
+
+				
 			}			
 		}
-			
-		// if LoadImage fails, it returns a NULL handle
-		if(NULL == hIcon)
+
+	} else
+	{
+	
+		CBitmap bitmap;
+		CBitmap *pOldBmp;
+		CDC MemDC;
+				
+		CDC *pDC = tWnd->GetDC();
+		MemDC.CreateCompatibleDC(pDC);
+		
+		CSize size = MemDC.GetTextExtent(wBtnText.c_str(), wBtnText.length());
+		size.cy = max(32,size.cy);
+		bitmap.CreateCompatibleBitmap(pDC, size.cx, size.cy);
+		
+		pOldBmp = MemDC.SelectObject(&bitmap);
+
+		CBrush brush;
+		brush.CreateSolidBrush(RGB(255,0,0));
+		
+		CRect rect;
+		rect.SetRect (0,0,size.cx,size.cy);
+
+		CFont font;// = tWnd->GetFont();
+
+		NONCLIENTMETRICS nm;
+		nm.cbSize = sizeof (NONCLIENTMETRICS);
+		SystemParametersInfo (SPI_GETNONCLIENTMETRICS,0,&nm,0);
+		LOGFONT fl = nm.lfMenuFont;
+		fl.lfWeight = FW_BOLD;
+		//fl.lfItalic=1;
+
+		//CFont * font = tWnd->GetFont();
+		//font->GetLogFont(&fl);
+
+		//TEXTMETRIC tm;
+		//int i = GetTextMetrics(tWnd->GetDC()->GetSafeHdc(),&tm);
+		
+		LOGFONT LogFont;
+		ZeroMemory(&LogFont,sizeof(LogFont));	
+		
+		CFont * pCustomFont = new CFont();
+		pCustomFont->CreateFontIndirect(&LogFont);
+
+
+	//	font.CreateFontIndirectW(&fl);
+		
+		MemDC.SelectObject(pCustomFont);
+
+
+
+		MemDC.SelectObject(&brush);				
+		MemDC.FillSolidRect(0,0,size.cx,size.cy,MemDC.GetBkColor());
+		MemDC.DrawText(wBtnText.c_str(),wBtnText.length(), &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER );		
+		MemDC.SetTextColor(RGB(0,0,255));
+	
+		//When done, than:
+		MemDC.SelectObject(pOldBmp);
+		//ReleaseDC(&MemDC);
+		//ReleaseDC(pDC);
+
+		HBITMAP hbmMask = ::CreateCompatibleBitmap(::GetDC(NULL), size.cx,size.cy);
+
+		ICONINFO ii = {0};
+		ii.fIcon    = TRUE;
+		ii.hbmColor = (HBITMAP)bitmap.m_hObject;
+		ii.hbmMask  = hbmMask;
+
+		hIcon = ::CreateIconIndirect(&ii);
+		::DeleteObject(hbmMask);	
+
+	}
+
+
+	ICONINFO info = {0};		
+	if ( ::GetIconInfo(hIcon, &info)!=0 )
+	{
+		bool bBWCursor = (info.hbmColor==NULL);
+		BITMAP bmpinfo = {0};
+		if (::GetObject( info.hbmMask, sizeof(BITMAP), &bmpinfo)!=0)
 		{
-		  // LoadImage faled so get extended error information.
-		  DWORD dwError = ::GetLastError();	  	  
-		  std::string ErrMsg = "Unable to load image into RunEx button. Image Path= ";			  
-		  ErrMsg+= sText.c_str();
-		  console::formatter() << ErrMsg.c_str() << ".";
-		  ErrMsg= " Error Code=";	  
-		  console::formatter() << ErrMsg.c_str() << (t_int32)dwError  << ".";	  	  		  
+			pSize->cx = bmpinfo.bmWidth;
+			pSize->cy = abs(bmpinfo.bmHeight) / (bBWCursor ? 2 : 1);
+		}
+
+		::DeleteObject(info.hbmColor);
+		::DeleteObject(info.hbmMask);
+	}
+	return hIcon;
+}
+
+void CRunExWnd::UpdateCntrl()
+{	
+	std::wstring wImagePath, wBtnText;	
+	HICON hIcon = NULL;
+
+	bool bIsBtnText = CMyPreferences::cfg_IsBtnText;	
+
+	std::string sText = CMyPreferences::cfg_ImageText;
+	CMyPreferences::StringToWString (wImagePath, sText);		
+
+	sText = CMyPreferences::cfg_BtnText;
+	CMyPreferences::StringToWString (wBtnText, sText);
+	
+	CSize size;
+		
+	hIcon = CreateIcon(&size);
+		
+	int iCnt = SendMessage(hwndToolbar, RB_GETBANDCOUNT, 0,0);
+		
+
+	// if LoadImage fails, it returns a NULL handle
+	if(NULL == hIcon)
+	{
+		// LoadImage faled so get extended error information.
+		DWORD dwError = ::GetLastError();	  	  
+		std::string ErrMsg = "Unable to load image into RunEx button. Image Path= " ;			  
+		ErrMsg+= sText.c_str();
+		console::formatter() << ErrMsg.c_str() << ".";
+		ErrMsg= " Error Code=";	  
+		console::formatter() << ErrMsg.c_str() << (t_int32)dwError  << ".";	  	  		  
+	}
+	else
+	{
+		ICONINFO iconInfo;
+		GetIconInfo(hIcon, &iconInfo);
+
+		
+
+		if (!bIsBtnText)
+		{
+			size.cx = 25;
+			size.cy = 25;
 		}
 		else
 		{
-			m_FirstToolBar.SetSizes(CSize(32+7,32+6),CSize(32,32));
-			
-			CToolBarCtrl& bar = m_FirstToolBar.GetToolBarCtrl();
-			CImageList *pList = bar.GetImageList();
- 			int index = pList->Add(hIcon);			
-			bar.SetImageList(pList);
-			CRect temp;			
-			m_FirstToolBar.GetItemRect(0,&temp);			
-			m_FirstToolBar.SetButtonText(0,L"");
-			m_FirstToolBar.SetButtonInfo(0,ID_TB1_CMD1, TBBS_BUTTON,index);
-			m_FirstToolBar.Invalidate();
+		//	size.cx = max(32,size.cx);
+		//	size.cy = max(32,size.cy);
 
 		}
 
+		CImageList *pList;
+		CToolBarCtrl& bar = m_FirstToolBar.GetToolBarCtrl();							
+
+		if (iconInfo.hbmColor==NULL)
+		{
+			pList = bar.GetImageList();
+		}
+		else
+		{
+			
+			bar.GetImageList()->DeleteImageList();
+			pList = new CImageList();
+			pList->Create(size.cx, size.cy, ILC_COLOR, 1, 1);
+		}
+		
+	
+		int index = pList->Add(hIcon);			
+		bar.SetImageList(pList);
+		
+		
+		IMAGEINFO ImageInfo;
+		pList->GetImageInfo(index, &ImageInfo);
+
+		//m_FirstToolBar.SetSizes(CSize(20,20),CSize(10,10));		
+		m_FirstToolBar.SetButtonInfo(0,ID_TB1_CMD1, TBBS_BUTTON,index);
+		m_FirstToolBar.Invalidate();
+
+		SendMessage(hwndToolbar, TB_AUTOSIZE, 0, 0);
+
+		ResizeBand (size.cx+4);
 	}
+
+	
+
+
 	for (int i = 0; i < iCnt; i++)			
 	{
 		SendMessage(hwndToolbar, RB_SHOWBAND , i,1);			
+	}
+}
+
+
+void CRunExWnd::ResizeBand (int cx)
+{
+	CReBar tmp;
+	REBARBANDINFO rbi = {0};
+	rbi.cbSize = 	tmp.GetReBarBandInfoSize(); 
+
+	if (SendMessage(hwndToolbar, RB_GETBANDINFO, (WPARAM)0, (LPARAM)&rbi) == 0)
+		console::formatter() << "Failed to get BandInfo" ;
+	else
+	{
+		rbi.fMask = RBBIM_BACKGROUND | RBBIM_CHILD | RBBIM_CHILDSIZE | 
+			RBBIM_STYLE ;
+		rbi.fStyle = RBBS_GRIPPERALWAYS| RBBS_CHILDEDGE;
+		rbi.cxMinChild = cx;
+		rbi.lpText = _T("");
+		rbi.cx = cx;
+		rbi.hwndChild = m_FirstToolBar.GetSafeHwnd();
+		hToolbar = hCmpWnd;
+
+		if (SendMessage(hwndToolbar, RB_SETBANDINFO, (WPARAM)1, (LPARAM)&rbi) == 0 )
+			console::formatter() << "Failed to update band";
+		else
+			console::formatter() << "Band Updated";	
 	}
 }
