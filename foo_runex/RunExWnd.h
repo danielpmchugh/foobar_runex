@@ -48,7 +48,7 @@ private:
 
 	void UpdateCntrl();
 	void ResizeBand (int cx);
-	HICON CreateIcon (CSize * pSize);
+	HICON CreateIcon (CSize * pSize, int maxCY);
 
 
 	void set_selection(metadb_handle_list_cref p_items);

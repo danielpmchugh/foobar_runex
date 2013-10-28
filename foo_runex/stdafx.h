@@ -19,3 +19,6 @@
 #define USE_MFC6_WITH_ATL7
 #include <atlbase.h>
 #include <atlwin.h>
+
+#include "../helpers/win32_misc.h"
+#include "../ATLHelpers/misc.h"

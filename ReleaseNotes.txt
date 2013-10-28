@@ -6,7 +6,16 @@ Additional Error Handling
 Running with UI Columns component
 After reset button is lost
 Cleanup preferences text
+Transparent text background
+Vertical Coordinates of text
+Display after locking toolbar 
+Sizing of icon for 32x32
+Check for any memery leaks
 
+Release Notes 0.0.4
+Context Menu Debug
+Minor improvement on icon display
+Beginning to put button into an ui_element
 
 Release Notes 0.0.3
 Sizing improvement for both text and images

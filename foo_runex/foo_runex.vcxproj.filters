@@ -58,6 +58,9 @@
     <ClInclude Include="ContextMenuSub.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ToolbarBtn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -94,6 +97,9 @@
       <Filter>Utility</Filter>
     </ClCompile>
     <ClCompile Include="ContextMenuSub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -208,6 +208,7 @@
     <ClInclude Include="RunExWnd.h" />
     <ClInclude Include="SmartPtr.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ToolbarBtn.h" />
     <ClInclude Include="Utility\HookIdle.h" />
     <ClInclude Include="Utility\SmartPtr.h" />
     <ClInclude Include="Utility\STrace.h" />
@@ -227,6 +228,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ToolbarBtn.cpp" />
     <ClCompile Include="Utility\HookIdle.cpp" />
     <ClCompile Include="Utility\SmartPtr.cpp" />
     <ClCompile Include="Utility\STrace.cpp" />

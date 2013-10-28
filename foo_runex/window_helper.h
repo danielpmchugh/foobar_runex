@@ -3,7 +3,7 @@
 #include "..\helpers\window_placement_helper.h"
 
 //! Special service_impl_t replacement for service classes that also implement ATL/WTL windows.
-
+#if 0
 template<typename _parentClass> class CWindowFixSEH : public _parentClass { public:
 	BOOL ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& lResult, DWORD dwMsgMapID = 0) {
 		__try {
@@ -12,6 +12,7 @@ template<typename _parentClass> class CWindowFixSEH : public _parentClass { publ
 	}
 	TEMPLATE_CONSTRUCTOR_FORWARD_FLOOD(CWindowFixSEH, _parentClass);
 };
+
 
 //! Special service_impl_t replacement for service classes that also implement ATL/WTL windows.
 template<typename _t_base>
@@ -58,7 +59,7 @@ private:
 	volatile LONG m_delayedDestroyInProgress;
 	pfc::refcounter m_counter;
 };
-
+#endif
 PFC_NORETURN PFC_NOINLINE void WIN32_OP_FAIL();
 
 #ifdef _DEBUG
@@ -94,13 +95,6 @@ template<typename TDialog> class preferences_page_instance_impl : public TDialog
 public:
 	preferences_page_instance_impl(HWND parent, preferences_page_callback::ptr callback) : TDialog(callback) {WIN32_OP(this->Create(parent) != NULL);}
 	HWND get_wnd() {return this->m_hWnd;}
-};
-static bool window_service_trait_defer_destruction(const preferences_page_instance *) {return false;}
-template<typename TDialog> class preferences_page_impl : public preferences_page_v3 {
-public:
-	preferences_page_instance::ptr instantiate(HWND parent, preferences_page_callback::ptr callback) {
-		return new window_service_impl_t<preferences_page_instance_impl<TDialog> >(parent, callback);
-	}
 };
 
 static bool g_is_enabled()

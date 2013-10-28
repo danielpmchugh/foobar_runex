@@ -1,3 +1,11 @@
+static bool window_service_trait_defer_destruction(const preferences_page_instance *) {return false;}
+template<typename TDialog> class preferences_page_impl : public preferences_page_v3 {
+public:
+	preferences_page_instance::ptr instantiate(HWND parent, preferences_page_callback::ptr callback) {
+		return new window_service_impl_t<preferences_page_instance_impl<TDialog> >(parent, callback);
+	}
+};
+
 class NoRedrawScope {
 public:
 	NoRedrawScope(HWND p_wnd) throw() : m_wnd(p_wnd) {
@@ -163,11 +171,14 @@ class ImplementModelessTracking : public TClass {
 public:
 	TEMPLATE_CONSTRUCTOR_FORWARD_FLOOD(ImplementModelessTracking, TClass);
 	
-	BEGIN_MSG_MAP_EX(ImplementModelessTracking)
+	//BEGIN_MSG_MAP_EX(ImplementModelessTracking)
+	BEGIN_MSG_MAP(ImplementModelessTracking)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		MSG_WM_DESTROY(OnDestroy)
 		CHAIN_MSG_MAP(TClass)
-	END_MSG_MAP_HOOK()
+    END_MSG_MAP()
+	//END_MSG_MAP_HOOK()
+
 private:
 	BOOL OnInitDialog(CWindow, LPARAM) {m_modeless.Set( m_hWnd ); SetMsgHandled(FALSE); return FALSE; }
 	void OnDestroy() {m_modeless.Set(NULL); SetMsgHandled(FALSE); }
@@ -185,6 +196,7 @@ private:
 	const unsigned m_id_base;
 	const service_ptr_t<ui_element_instance> m_owner;
 };
+
 
 static void ui_element_instance_standard_context_menu(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt) {
 	CPoint pt;
@@ -206,12 +218,12 @@ static void ui_element_instance_standard_context_menu(service_ptr_t<ui_element_i
 		WIN32_OP( menu.CreatePopupMenu() );
 		p_elem->edit_mode_context_menu_build(pt,fromKeyboard,menu,idBase);
 		
-		int cmd;
-		{
-			CMenuSelectionReceiver_UiElement receiver(p_elem,idBase);
-			cmd = menu.TrackPopupMenu(TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD,pt.x,pt.y,receiver);
-		}
-		if (cmd > 0) p_elem->edit_mode_context_menu_command(pt,fromKeyboard,cmd,idBase);
+//		int cmd;
+//		{
+//			CMenuSelectionReceiver_UiElement receiver(p_elem,idBase);
+//			cmd = menu.TrackPopupMenu(TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD,pt.x,pt.y,receiver);
+//		}
+//		if (cmd > 0) p_elem->edit_mode_context_menu_command(pt,fromKeyboard,cmd,idBase);
 	}
 }
 static void ui_element_instance_standard_context_menu_eh(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt) {
@@ -222,7 +234,53 @@ static void ui_element_instance_standard_context_menu_eh(service_ptr_t<ui_elemen
 	}
 }
 
+//! Special service_impl_t replacement for service classes that also implement ATL/WTL windows.
+template<typename _t_base>
+class window_service_impl_t : public CWindowFixSEH<_t_base> {
+private:
+	typedef window_service_impl_t<_t_base> t_self;
+	typedef CWindowFixSEH<_t_base> t_base;
+public:
+	BEGIN_MSG_MAP(window_service_impl_t)
+		MESSAGE_HANDLER(WM_DESTROY,OnDestroyPassThru)	
+		CHAIN_MSG_MAP(__super)
+	END_MSG_MAP()
 
+	int FB2KAPI service_release() throw() {
+		int ret = --m_counter; 
+		if (ret == 0) {
+			if (window_service_trait_defer_destruction((const preferences_page_instance *)this) && !InterlockedExchange(&m_delayedDestroyInProgress,1)) {
+				PFC_ASSERT_NO_EXCEPTION( service_impl_helper::release_object_delayed(this); );
+			} else if (m_hWnd != NULL) {
+				if (!m_destroyWindowInProgress) { // don't double-destroy in weird scenarios
+					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(m_hWnd) );
+				}
+			} else {
+				PFC_ASSERT_NO_EXCEPTION( delete this );
+			}
+		}
+		return ret;
+	}
+	int FB2KAPI service_add_ref() throw() {return ++m_counter;}
+
+	TEMPLATE_CONSTRUCTOR_FORWARD_FLOOD_WITH_INITIALIZER(window_service_impl_t,t_base,{m_destroyWindowInProgress = false; m_delayedDestroyInProgress = 0; })
+private:
+	LRESULT OnDestroyPassThru(UINT,WPARAM,LPARAM,BOOL&) {
+		SetMsgHandled(FALSE); 
+		m_destroyWindowInProgress = true;
+		return 0;
+	}
+	void OnFinalMessage(HWND p_wnd) {
+		t_base::OnFinalMessage(p_wnd);
+		service_ptr_t<service_base> bump(this);
+	}
+	volatile bool m_destroyWindowInProgress;
+	volatile LONG m_delayedDestroyInProgress;
+	pfc::refcounter m_counter;
+};
+
+
+#if 0
 #if _WIN32_WINNT >= 0x501
 static void HeaderControl_SetSortIndicator(CHeaderCtrl header, int column, bool isUp) {
 	const int total = header.GetItemCount();
@@ -242,6 +300,7 @@ static void HeaderControl_SetSortIndicator(CHeaderCtrl header, int column, bool 
 	}
 }
 #endif
+
 
 typedef CWinTraits<WS_POPUP,WS_EX_TRANSPARENT|WS_EX_LAYERED|WS_EX_TOPMOST|WS_EX_TOOLWINDOW> CFlashWindowTraits;
 
@@ -270,7 +329,7 @@ public:
 		if (m_hWnd != NULL) DestroyWindow();
 	}
 
-	BEGIN_MSG_MAP_EX(CFlashWindow)
+	BEGIN_MSG_MAP(CFlashWindow)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_TIMER(OnTimer)
 		MSG_WM_DESTROY(OnDestroy)
@@ -288,7 +347,7 @@ private:
 		if (id == KTimerID) {
 			switch(++m_tickCount) {
 				case 1:
-					ShowWindow(SW_HIDE);
+					ShowWindow( SW_HIDE);
 					break;
 				case 2:
 					ShowAbove(m_parent);
@@ -387,48 +446,6 @@ public:
 static bool window_service_trait_defer_destruction(const service_base *) {return true;}
 
 
-//! Special service_impl_t replacement for service classes that also implement ATL/WTL windows.
-template<typename _t_base>
-class window_service_impl_t : public CWindowFixSEH<_t_base> {
-private:
-	typedef window_service_impl_t<_t_base> t_self;
-	typedef CWindowFixSEH<_t_base> t_base;
-public:
-	BEGIN_MSG_MAP_EX(window_service_impl_t)
-		MSG_WM_DESTROY(OnDestroyPassThru)
-		CHAIN_MSG_MAP(__super)
-	END_MSG_MAP_HOOK()
-
-	int FB2KAPI service_release() throw() {
-		int ret = --m_counter; 
-		if (ret == 0) {
-			if (window_service_trait_defer_destruction(this) && !InterlockedExchange(&m_delayedDestroyInProgress,1)) {
-				PFC_ASSERT_NO_EXCEPTION( service_impl_helper::release_object_delayed(this); );
-			} else if (m_hWnd != NULL) {
-				if (!m_destroyWindowInProgress) { // don't double-destroy in weird scenarios
-					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(m_hWnd) );
-				}
-			} else {
-				PFC_ASSERT_NO_EXCEPTION( delete this );
-			}
-		}
-		return ret;
-	}
-	int FB2KAPI service_add_ref() throw() {return ++m_counter;}
-
-	TEMPLATE_CONSTRUCTOR_FORWARD_FLOOD_WITH_INITIALIZER(window_service_impl_t,t_base,{m_destroyWindowInProgress = false; m_delayedDestroyInProgress = 0; })
-private:
-	void OnDestroyPassThru() {
-		SetMsgHandled(FALSE); m_destroyWindowInProgress = true;
-	}
-	void OnFinalMessage(HWND p_wnd) {
-		t_base::OnFinalMessage(p_wnd);
-		service_ptr_t<service_base> bump(this);
-	}
-	volatile bool m_destroyWindowInProgress;
-	volatile LONG m_delayedDestroyInProgress;
-	pfc::refcounter m_counter;
-};
 
 
 static void AppendMenuPopup(HMENU menu, UINT flags, CMenu & popup, const TCHAR * label) {
@@ -691,7 +708,7 @@ void PaintSeparatorControl(CWindow wnd);
 class CStaticSeparator : public CContainedWindowT<CStatic>, private CMessageMap {
 public:
 	CStaticSeparator() : CContainedWindowT<CStatic>(this, 0) {}
-	BEGIN_MSG_MAP_EX(CSeparator)
+	BEGIN_MSG_MAP(CSeparator)
 		MSG_WM_PAINT(OnPaint)
 		MSG_WM_SETTEXT(OnSetText)
 	END_MSG_MAP()
@@ -905,3 +922,5 @@ private:
 		PaintSeparatorControl(*this);
 	}
 };
+
+#endif

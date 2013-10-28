@@ -38,9 +38,9 @@ LRESULT CContextMenuSub::WndProcSub(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	if ((uMsg == m_iWMMenuItemClick) && ((t_int32)LOWORD(wParam) == m_iBtnPos))
 	{
-#ifdef _DEBUG
+//#ifdef _DEBUG
 		console::formatter() << "WM=" << (t_int32)uMsg  << " WPARAM=" << (t_int32)HIWORD(wParam) << "-" << (t_int32)LOWORD(wParam) << " LPARAM=" << (t_int32)HIWORD(lParam) << "-" << LOWORD(lParam ) ;	  			
-#endif
+//#endif
 		// send toolbar message when context menu item is click- signaling user want to hide/show toolbar button
 		SendMessage(m_hWndNotify, m_iWMShowHideToolbar, 0, 0);
 	}

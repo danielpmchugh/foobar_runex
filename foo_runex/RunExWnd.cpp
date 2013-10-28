@@ -3,7 +3,7 @@
 #include <afxcmn.h>
 #include "preferences.h"
 #include "ContextMenuSub.h"
-
+#include "ToolbarBtn.h"
 
 CRunExWnd CRunExWnd::g_instance;
 HWND CRunExWnd::hToolbar = NULL;
@@ -11,6 +11,7 @@ CToolBar CRunExWnd::m_FirstToolBar;
 CWnd * CRunExWnd::tWnd = NULL;
 CWnd * CRunExWnd::contextWnd = NULL;
 HWND CRunExWnd::hCmpWnd = NULL;
+
 
 
 // helper function to get the font used for message boxes as uLOGFONT structure
@@ -94,9 +95,8 @@ HWND CRunExWnd::Create(HWND p_hWndParent) {
 	}
 
 	p = new Utils::CWndProcHook();
-
-	
-
+		
+	//CToolbarBtn::ShowWindow(hCmpWnd);
 	return hCmpWnd;
 }
 
@@ -159,15 +159,18 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			
 	case WM_CONTEXT_MENU_FB:
 		//Try to grab the context menu
+
+		console::formatter() << "Looking for context menu...";
 		contexthWnd =  FindWindowEx( NULL, NULL, MAKEINTATOM(0x8000), NULL );		
 		if (contexthWnd  != NULL)
 		{			
+			console::formatter() << "Context menu found";
 			contextWnd = CWnd::FromHandle(contexthWnd);					
 
 			HMENU hMenu =  (HMENU) SendMessage(contexthWnd,MN_GETHMENU, 0, 0);
 			if (hMenu) // try to get the menu handle
 			{	
-
+				console::formatter() << "Context Menu Handle found";
 				// we have the context menu handle
 				CMenu * pMenu = CMenu::FromHandle(hMenu);			
 				
@@ -189,6 +192,8 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 					mii.cch = strlenT(_T("RunEx"));
 					mii.hbmpItem = NULL;
 
+					console::formatter() << "Inserting menu item";
+
 					pMenu->InsertMenuItemW(12,&mii,1);
 					if (m_FirstToolBar.IsWindowVisible())	
 						pMenu->CheckMenuItem(12, MF_BYPOSITION|MF_CHECKED   );
@@ -198,16 +203,15 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 				// Subclass the menu window allowing us to be notified when menu button is clicked.
 					
 				_pS1 = new CContextMenuSub(495, 12, WM_TOOLBAR_SHOWHIDE, this->m_hWnd) ;
-				_pS1->Subclass(contexthWnd);
-				
+				_pS1->Subclass(contexthWnd);				
 			}
 		}
 		else
 		{
 			Sleep(100);			
-#ifdef _DEBUG
-			console::formatter() << "Context is null reposting message";
-#endif
+//#ifdef _DEBUG
+			console::formatter() << "Could not find Context menu...checking in 100 ms";
+//#endif
 			PostMessage(CRunExWnd::hCmpWnd,WM_CONTEXT_MENU_FB,0,0);
 
 		}				
@@ -273,7 +277,7 @@ void CRunExWnd::Launch(UINT p)
 	}
 }
 
-HICON CRunExWnd::CreateIcon (CSize * pSize)
+HICON CRunExWnd::CreateIcon (CSize * pSize, int maxCY)
 {
 	std::wstring wImagePath, wBtnText;	
 	HICON hIcon = NULL;
@@ -295,13 +299,10 @@ HICON CRunExWnd::CreateIcon (CSize * pSize)
 
 		if (ext.compare(L".ICO")==0)
 		{
-			hIcon = (HICON )::LoadImage(NULL, wImagePath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-
-			
+			hIcon = (HICON )::LoadImage(NULL, wImagePath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);			
 		}
 		if (ext.compare(L".BMP")==0)
 		{
-
 			HBITMAP bmp = (HBITMAP )::LoadImage(NULL, wImagePath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
 			BITMAP bm;  
@@ -327,9 +328,7 @@ HICON CRunExWnd::CreateIcon (CSize * pSize)
 			SIZE res = {0};
 			if ( ::GetIconInfo(cur, &info)!=0 )
 			{
-				hIcon = ::CreateIconIndirect(&info);
-
-				
+				hIcon = ::CreateIconIndirect(&info);				
 			}			
 		}
 
@@ -340,58 +339,46 @@ HICON CRunExWnd::CreateIcon (CSize * pSize)
 		CBitmap *pOldBmp;
 		CDC MemDC;
 				
-		CDC *pDC = tWnd->GetDC();
+		CWnd * mWnd = CWnd::FromHandle(core_api::get_main_window());
+
+		CDC *pDC = mWnd->GetDC();
 		MemDC.CreateCompatibleDC(pDC);
 		
 		CSize size = MemDC.GetTextExtent(wBtnText.c_str(), wBtnText.length());
-		size.cy = max(32,size.cy);
+		size.cy = maxCY;
 		bitmap.CreateCompatibleBitmap(pDC, size.cx, size.cy);
 		
 		pOldBmp = MemDC.SelectObject(&bitmap);
 
 		CBrush brush;
 		brush.CreateSolidBrush(RGB(255,0,0));
-		
+		MemDC.SelectObject(&brush);				
+
 		CRect rect;
 		rect.SetRect (0,0,size.cx,size.cy);
-
-		CFont font;// = tWnd->GetFont();
-
-		NONCLIENTMETRICS nm;
-		nm.cbSize = sizeof (NONCLIENTMETRICS);
-		SystemParametersInfo (SPI_GETNONCLIENTMETRICS,0,&nm,0);
-		LOGFONT fl = nm.lfMenuFont;
-		fl.lfWeight = FW_BOLD;
-		//fl.lfItalic=1;
-
-		//CFont * font = tWnd->GetFont();
-		//font->GetLogFont(&fl);
-
-		//TEXTMETRIC tm;
-		//int i = GetTextMetrics(tWnd->GetDC()->GetSafeHdc(),&tm);
 		
-		LOGFONT LogFont;
-		ZeroMemory(&LogFont,sizeof(LogFont));	
+//		CFont font;
+//		NONCLIENTMETRICS nm;
+//		nm.cbSize = sizeof (NONCLIENTMETRICS);
+//		SystemParametersInfo (SPI_GETNONCLIENTMETRICS,0,&nm,0);
+//		LOGFONT fl = nm.lfMenuFont;
+//		fl.lfWeight = FW_BOLD;		
+//		LOGFONT LogFont;
+//		ZeroMemory(&LogFont,sizeof(LogFont));			
+//		CFont * pCustomFont = new CFont();
+//		pCustomFont->CreateFontIndirect(&LogFont);
+//		MemDC.SelectObject(pCustomFont);
 		
-		CFont * pCustomFont = new CFont();
-		pCustomFont->CreateFontIndirect(&LogFont);
 
-
-	//	font.CreateFontIndirectW(&fl);
-		
-		MemDC.SelectObject(pCustomFont);
-
-
-
-		MemDC.SelectObject(&brush);				
-		MemDC.FillSolidRect(0,0,size.cx,size.cy,MemDC.GetBkColor());
+		MemDC.SetBkMode(TRANSPARENT);
+		MemDC.FillSolidRect(0,0,size.cx,size.cy, pDC->GetBkColor());
 		MemDC.DrawText(wBtnText.c_str(),wBtnText.length(), &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER );		
 		MemDC.SetTextColor(RGB(0,0,255));
 	
 		//When done, than:
-		MemDC.SelectObject(pOldBmp);
-		//ReleaseDC(&MemDC);
-		//ReleaseDC(pDC);
+		MemDC.SelectObject(pOldBmp);	
+//		ReleaseDC(&MemDC);
+	//	ReleaseDC(pDC);
 
 		HBITMAP hbmMask = ::CreateCompatibleBitmap(::GetDC(NULL), size.cx,size.cy);
 
@@ -437,8 +424,13 @@ void CRunExWnd::UpdateCntrl()
 	CMyPreferences::StringToWString (wBtnText, sText);
 	
 	CSize size;
-		
-	hIcon = CreateIcon(&size);
+
+	RECT rect;
+	m_FirstToolBar.GetWindowRect(&rect); // Get the size of the toolbar
+
+	int iMaxCY = rect.bottom - rect.top - 7;
+			
+	hIcon = CreateIcon(&size,iMaxCY);
 		
 	int iCnt = SendMessage(hwndToolbar, RB_GETBANDCOUNT, 0,0);
 		
@@ -458,19 +450,16 @@ void CRunExWnd::UpdateCntrl()
 	{
 		ICONINFO iconInfo;
 		GetIconInfo(hIcon, &iconInfo);
-
-		
-
+				
 		if (!bIsBtnText)
 		{
 			size.cx = 25;
-			size.cy = 25;
+			size.cy = iMaxCY;
 		}
 		else
 		{
 		//	size.cx = max(32,size.cx);
 		//	size.cy = max(32,size.cy);
-
 		}
 
 		CImageList *pList;
