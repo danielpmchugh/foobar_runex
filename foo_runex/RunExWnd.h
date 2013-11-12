@@ -2,21 +2,16 @@
 #define RUNEXWND_H
 #include "stdafx.h"
 #include "window_helper.h"
-#include "Utility/WndSubclasser.h"2
-#include "Utility/WndProcHook.h"2
-
-
-
+#include "Utility/WndSubclasser.h"
+#include "Utility/WndProcHook.h"
 
 class CRunExWnd :
 	public CSimpleWindowImpl<CRunExWnd>,
-	private message_filter
+	private message_filter,
+	public Utils::CWndProcHook
 {
 public:
-	static CWnd * contextWnd;
-	static HWND hToolbar;
-	static HWND hCmpWnd;
-	static CToolBar m_FirstToolBar;
+	static CWnd * contextWnd;		
 	typedef CSimpleWindowImpl<CRunExWnd> super;
 	
 	static void ShowWindow();
@@ -38,18 +33,15 @@ public:
 	HWND Create(HWND hWndParent);
 	inline void RedrawWindow() {::RedrawWindow(m_hWnd, 0, 0, RDW_INVALIDATE);}
 	void Launch(UINT someparam);
-	static CWnd * tWnd;
-
-
+	
+	static HWND hWnd;
 private:
 	
 	CRunExWnd() {}
 	~CRunExWnd() {}
-
-	void UpdateCntrl();
+		
 	void ResizeBand (int cx);
 	HICON CreateIcon (CSize * pSize, int maxCY);
-
 
 	void set_selection(metadb_handle_list_cref p_items);
 
@@ -57,14 +49,13 @@ private:
 	virtual bool pretranslate_message(MSG * p_msg);
 
 	Utils::PWndSubclasser _pS1;
-	HWND hwndToolbar;	
+	HWND hwndRebar;
 	Utils::PWndProcHook p;
 	static CRunExWnd g_instance;
 
+	LRESULT OnHook(CWPSTRUCT& cwps);
 	CFont * m_font;
 };
-
-
 
 #endif
 

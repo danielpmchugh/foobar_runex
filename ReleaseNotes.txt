@@ -1,6 +1,9 @@
 Still working on...
+Improve button positioning and display when locking the toolbar.
+Improve button positioning and display when repositioning bars.
+Retain toolbar state after shutting down and restarting the application. 
+Context menu does not work on XP
 Text in button matches that of File->Preferences->Default User Interface-> Colors and Fonts
-Blank text in preferences then display RunEx
 Hover Functionality
 Additional Error Handling
 Running with UI Columns component
@@ -11,6 +14,10 @@ Vertical Coordinates of text
 Display after locking toolbar 
 Sizing of icon for 32x32
 Check for any memery leaks
+
+Release 0.0.5
+Refactoring changes. Button implementation split into ToolbarBtn.  CRunExWnd will manage toolbar and hooks.  
+If text is blank in preferences then display RunEx
 
 Release Notes 0.0.4
 Context Menu Debug

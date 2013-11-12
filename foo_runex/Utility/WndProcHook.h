@@ -21,9 +21,10 @@ namespace Utils{
 		LRESULT Default();
 		bool Clear();
 		CWndProcHook();
+		int CWndProcHook::CreateHook();
 		virtual ~CWndProcHook(void);
 	protected:
-		virtual LRESULT OnHook(CWPSTRUCT& cwps);
+		virtual LRESULT OnHook(CWPSTRUCT& cwps) = 0;
 	};
 
     

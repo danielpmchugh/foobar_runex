@@ -166,7 +166,7 @@ void CMyPreferences::apply() {
 	CWnd * cWnd = CWnd::FromHandle(core_api::get_main_window());
 	HWND hwndOwner = cWnd->GetSafeHwnd();		
 	CWnd * tWnd = cWnd->FindWindowExW(core_api::get_main_window(),NULL,L"RunExWnd",NULL);
-	SendMessage(CRunExWnd::hToolbar,WM_UPDATE_CTRL, 0, 0);
+	SendMessage(CRunExWnd::hWnd, WM_UPDATE_CTRL, 0, 0);
 	OnChanged(); //our dialog content has not changed but the flags have - our currently shown values now match the settings so the apply button can be disabled
 }
 

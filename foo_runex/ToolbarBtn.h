@@ -1,6 +1,7 @@
 #pragma once
 
 #include "window_helper.h"
+#include <afxext.h>
 
 // This class implements our window. 
 // It uses a helper class from window_helper.h that emulates
@@ -14,14 +15,17 @@
 // be called in the context of the main thread, we can derive
 // our window class from play_callback and register 'this'.
 
-class CToolbarBtn  : public ui_element_instance, public CWindowImpl<CToolbarBtn > 
+
+
+
+class CToolbarBarRunExe : public ui_element_instance, public CWindowImpl<CToolbarBarRunExe >
 {
 public:
 
 	// ATL window class declaration. Replace class name with your own when reusing code.\r
 	DECLARE_WND_CLASS_EX(TEXT("{DC2917D5-1288-4434-A28C-F16CFCE13C4B}"),CS_VREDRAW | CS_HREDRAW,(-1));
 
-	void initialize_window(HWND parent) {WIN32_OP(Create(parent,0,0,0,WS_EX_STATICEDGE) != NULL);}
+	void initialize_window(HWND parent); 
 
 	BEGIN_MSG_MAP(ui_element_dummy)
 		MESSAGE_HANDLER(WM_LBUTTONDOWN,OnLButtonDown);
@@ -29,7 +33,12 @@ public:
 		MESSAGE_HANDLER(WM_PAINT,OnPaint);
 	END_MSG_MAP()
 
-	CToolbarBtn(ui_element_config::ptr,ui_element_instance_callback_ptr p_callback);
+	GUID get_guid() { return g_get_guid(); }
+	GUID get_subclass() { return g_get_subclass(); }
+	int FB2KAPI service_release() throw() { return 1; }
+	int FB2KAPI service_add_ref() throw() { return 1; }
+
+	CToolbarBarRunExe(ui_element_config::ptr, ui_element_instance_callback_ptr p_callback);
 	HWND get_wnd() {return *this;}
 	void set_configuration(ui_element_config::ptr config) {m_config = config;}
 	ui_element_config::ptr get_configuration() {return m_config;}
@@ -44,16 +53,27 @@ public:
 	static const char * g_get_description() {return "This is a sample UI Element.";}
 	
 	void notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size);
+
+	int UpdateCntrl();
+	
+	CToolBar toolbar;// WOULD LIKE TO HIDE THIS
+	HWND GetToolbarHwnd() { return toolbar.GetSafeHwnd(); }
+	
+	HICON CreateIcon(CSize * pSize, int maxCY);
+
 private:
 	LRESULT OnLButtonDown(UINT,WPARAM,LPARAM,BOOL&) {m_callback->request_replace(this);return 0;}
 	LRESULT OnPaint(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnEraseBkgnd(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	
 
 	ui_element_config::ptr m_config;
+	
 protected:
 	// this must be declared as protected for ui_element_impl_withpopup<> to work.
 	static const GUID s_guid;
 	const ui_element_instance_callback_ptr m_callback;
+
+	
 };
 
 #if 0

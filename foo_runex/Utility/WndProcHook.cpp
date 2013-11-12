@@ -44,19 +44,23 @@ namespace Utils{namespace {
 
 		return CWndProcHook::Call(&oht);
  	}
-
-
 }}
 
 CWndProcHook::CWndProcHook()
+{
+
+}
+
+int CWndProcHook::CreateHook()
 {
 #ifdef _DEBUG
 	Mfc::STrace trc; trc.Trace(typeid(*this), this, "CWndProcHook(void)");
 #endif
 	_token = NULL;
-	if(!g_wndProcHookChain.size())
+	if (!g_wndProcHookChain.size())
 		g_wndProcHookChainHook = SetWindowsHookEx(WH_CALLWNDPROC, CallHookWndProc, NULL, GetCurrentThreadId());
 	g_wndProcHookChain.push_front(this);
+	return 0;
 }
 
 CWndProcHook::~CWndProcHook(void)
@@ -87,7 +91,7 @@ LRESULT CWndProcHook::Call(LPVOID token)
 		return CallNextHookEx(g_wndProcHookChainHook, pOht->nCode, pOht->wParam, pOht->lParam);
 
 	CWndProcHook* pWH = *pOht->i;
-	PWndProcHook pKeep(pWH);
+//	PWndProcHook pKeep(pWH);
 	pOht->i++;
 	pOht->prevtoken = pWH->_token;
 	pWH->_token = token;
@@ -96,26 +100,6 @@ LRESULT CWndProcHook::Call(LPVOID token)
 	return r;
 }
 
-LRESULT CWndProcHook::OnHook(CWPSTRUCT &cwps)
-{
-	CWnd * cWnd = CWnd::FromHandle(core_api::get_main_window());
-	HWND hwndOwner = cWnd->GetSafeHwnd();
-
-	CWnd * tWnd = cWnd->FindWindowExW(hwndOwner,NULL,L"ATL:ReBarWindow32",NULL);
-
-	
-	if (cwps.hwnd == tWnd->GetSafeHwnd())
-	{
-		switch (cwps.message)
-		{
-		case WM_CONTEXTMENU:		
-			SendMessage(CRunExWnd::hCmpWnd,WM_CONTEXT_MENU_FB,0,0);
-			break;			
-		}
-	}
-
-	return Default();
-}
 
 LRESULT CWndProcHook::Default()
 {
