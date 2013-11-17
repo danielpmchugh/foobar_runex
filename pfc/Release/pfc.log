@@ -1,0 +1,23 @@
+﻿Build started 10/12/2013 8:26:13 PM.
+     1>Project "C:\working\project_foobar\pfc\pfc.vcxproj" on node 3 (Build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Release\pfc.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+         All outputs are up-to-date.
+       Lib:
+         All outputs are up-to-date.
+         pfc.vcxproj -> C:\working\project_foobar\foobar_runex\Release\pfc.lib
+       PostBuildEvent:
+         Description: Copying output file to bin directory...
+         copy "C:\working\project_foobar\foobar_runex\Release\pfc.lib" "C:\working\project_foobar\foobar_runex\bin\release\"
+         :VCEnd
+                 1 file(s) copied.
+       FinalizeBuildStatus:
+         Deleting file "Release\pfc.unsuccessfulbuild".
+         Touching "Release\pfc.lastbuildstate".
+     1>Done Building Project "C:\working\project_foobar\pfc\pfc.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.10

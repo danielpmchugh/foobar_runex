@@ -215,7 +215,7 @@ unsigned QueryScreenDPI();
 SIZE QueryScreenDPIEx();
 
 static WORD GetOSVersion() {
-	const DWORD ver = GetVersion();
+	const DWORD ver = 0;// GetVersion();
 	return (WORD)HIBYTE(LOWORD(ver)) | ((WORD)LOBYTE(LOWORD(ver)) << 8);
 }
 

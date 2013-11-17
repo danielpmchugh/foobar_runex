@@ -11,7 +11,7 @@
 // #define FOOBAR2000_TARGET_VERSION 76 // 1.0
 #define FOOBAR2000_TARGET_VERSION 77 // 1.1
 
-#include "../../pfc/pfc.h"
+#include "../pfc/pfc.h"
 
 #include "../shared/shared.h"
 

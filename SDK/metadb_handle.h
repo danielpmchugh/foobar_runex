@@ -1,4 +1,4 @@
-#include "..\..\pfc\list.h"
+#include "..\pfc\list.h"
 class titleformat_hook;
 class titleformat_text_filter;
 

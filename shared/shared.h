@@ -1,7 +1,7 @@
 #ifndef _SHARED_DLL__SHARED_H_
 #define _SHARED_DLL__SHARED_H_
 
-#include "../../pfc/pfc.h"
+#include "../pfc/pfc.h"
 #include <signal.h>
 
 #ifndef WIN32

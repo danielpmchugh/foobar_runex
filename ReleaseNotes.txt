@@ -15,6 +15,9 @@ Display after locking toolbar
 Sizing of icon for 32x32
 Check for any memery leaks
 
+Release 0.0.6
+Updates for Visual Studios 2013
+
 Release 0.0.5
 Refactoring changes. Button implementation split into ToolbarBtn.  CRunExWnd will manage toolbar and hooks.  
 If text is blank in preferences then display RunEx
