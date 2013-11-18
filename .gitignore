@@ -23,3 +23,8 @@ foo_runex/Debug
 helpers/Debug
 pfc/Debug
 foobar2000_component_client/Debug
+*.exp
+*.ilk
+SDK/Release
+*tlog*
+ipch

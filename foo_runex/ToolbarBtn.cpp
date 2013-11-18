@@ -37,15 +37,7 @@ private:
 };
 
 
-//class ui_element_myimpl : public ui_element_impl<CToolbarBarRunExe> {};
-
-//static service_factory_t<ui_element_impl<CToolbarBarRunExe>> g_ui_element_myimpl_factory;
-
-
 static service_factory_single_t<my_ui_element_impl<CToolbarBarRunExe> > g_ui_element_myimpl_factory;
-
-//g_ui_element_myimpl_factory.instance_create();
-
 
 
 void CToolbarBarRunExe::notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) {
@@ -85,9 +77,11 @@ int CToolbarBarRunExe::UpdateCntrl()
 
 	RECT rect;
 	toolbar.GetWindowRect(&rect); // Get the size of the toolbar
-
+	
 	int iMaxCY = rect.bottom - rect.top - 7;
-	hIcon = CreateIcon(&size, iMaxCY);
+//	iMaxCY = max(25, iMaxCY);
+	int iDesiredCX = 25;
+	hIcon = CreateIcon(&size, iDesiredCX, iMaxCY);
 	
 		
 	// if LoadImage fails, it returns a NULL handle
@@ -108,13 +102,8 @@ int CToolbarBarRunExe::UpdateCntrl()
 
 		if (!bIsBtnText)
 		{
-			size.cx = 25;
+			size.cx = iDesiredCX;
 			size.cy = iMaxCY;
-		}
-		else
-		{
-			//	size.cx = max(32,size.cx);
-			//	size.cy = max(32,size.cy);
 		}
 
 		CImageList *pList;
@@ -151,7 +140,7 @@ int CToolbarBarRunExe::UpdateCntrl()
 }
 
 
-HICON CToolbarBarRunExe::CreateIcon(CSize * pSize, int maxCY)
+HICON CToolbarBarRunExe::CreateIcon(CSize * pSize, int desiredCX, int desiredCY)
 {
 		
 	HICON hIcon = NULL;
@@ -180,11 +169,11 @@ HICON CToolbarBarRunExe::CreateIcon(CSize * pSize, int maxCY)
 
 		if (ext.compare(L".ICO") == 0)
 		{
-			hIcon = (HICON)::LoadImage(NULL, wImagePath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+			hIcon = (HICON)::LoadImage(NULL, wImagePath.c_str(), IMAGE_ICON, desiredCX, desiredCY, LR_LOADFROMFILE);
 		}
 		if (ext.compare(L".BMP") == 0)
 		{
-			HBITMAP bmp = (HBITMAP)::LoadImage(NULL, wImagePath.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			HBITMAP bmp = (HBITMAP)::LoadImage(NULL, wImagePath.c_str(), IMAGE_BITMAP, desiredCX, desiredCY, LR_LOADFROMFILE);
 
 			BITMAP bm;
 			GetObject(bmp, sizeof(BITMAP), &bm);
@@ -204,7 +193,7 @@ HICON CToolbarBarRunExe::CreateIcon(CSize * pSize, int maxCY)
 		if (ext.compare(L".CUR") == 0)
 		{
 			HCURSOR cur = (HCURSOR)::LoadImage(NULL, wImagePath.c_str(),
-				IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE);
+				IMAGE_CURSOR, desiredCX, desiredCY, LR_LOADFROMFILE);
 			ICONINFO info = { 0 };
 			SIZE res = { 0 };
 			if (::GetIconInfo(cur, &info) != 0)
@@ -227,14 +216,10 @@ HICON CToolbarBarRunExe::CreateIcon(CSize * pSize, int maxCY)
 		MemDC.CreateCompatibleDC(pDC);
 
 		CSize size = MemDC.GetTextExtent(wBtnText.c_str(), wBtnText.length());
-		size.cy = maxCY;
+		size.cy = desiredCY;
 		bitmap.CreateCompatibleBitmap(pDC, size.cx, size.cy);
 
 		pOldBmp = MemDC.SelectObject(&bitmap);
-
-//		CBrush brush;
-	//	brush.CreateSolidBrush(RGB(255, 0, 0));
-	//	MemDC.SelectObject(&brush);
 
 		CRect rect;
 		rect.SetRect(0, 0, size.cx, size.cy);
@@ -276,6 +261,7 @@ HICON CToolbarBarRunExe::CreateIcon(CSize * pSize, int maxCY)
 		::DeleteObject(info.hbmColor);
 		::DeleteObject(info.hbmMask);
 	}
+
 	return hIcon;
 }
 

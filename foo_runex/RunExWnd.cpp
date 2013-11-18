@@ -23,17 +23,26 @@ void CRunExWnd::HideWindow() {
 	//g_instance.Destroy();
 }
 
-
-HWND CRunExWnd::Create(HWND p_hWndParent) 
-{	
+CWnd * CRunExWnd::GetRebar()
+{
 	// Get CWnd and HWND for main window
 	CWnd * cWndMain = CWnd::FromHandle(core_api::get_main_window());
 	HWND hwndMain = cWndMain->GetSafeHwnd();
-
+	
+	CWnd * cRebar = NULL;
 	// Get CWnd and HWND for Rebar control
-	CWnd * cWndRebar = cWndMain->FindWindowExW(hwndMain, NULL, L"ATL:ReBarWindow32", NULL);
-	hwndRebar = cWndRebar->GetSafeHwnd();
+	cRebar = cWndMain->FindWindowExW(hwndMain, NULL, L"ReBarWindow32", NULL);
+	if (cRebar == NULL)
+		cRebar = cWndMain->FindWindowExW(hwndMain, NULL, L"ATL:ReBarWindow32", NULL);
 
+	hwndRebar = cRebar->GetSafeHwnd();
+	return cRebar;
+
+}
+
+HWND CRunExWnd::Create(HWND p_hWndParent) 
+{	
+	CWnd * cWndRebar = GetRebar();
 	// Create this window / hidden.	
 	hWnd = super::Create(core_api::get_main_window(),
 		TEXT("RunExWnd"),		
@@ -69,15 +78,8 @@ HWND CRunExWnd::Create(HWND p_hWndParent)
 			console::formatter() << "Band inserted";
 	}
 
-	int cx = tbRunExe.UpdateCntrl();
-	ResizeBand(cx+4);
+	ResizeBand(tbRunExe.UpdateCntrl() + 4);
 
-	int iCnt = SendMessage(hwndRebar, RB_GETBANDCOUNT, 0, 0);
-
-	for (int i = 0; i < iCnt; i++)
-	{
-		SendMessage(hwndRebar, RB_SHOWBAND, i, 1);
-	}	
 
 	CreateHook();	
 	
@@ -87,11 +89,9 @@ HWND CRunExWnd::Create(HWND p_hWndParent)
 
 LRESULT CRunExWnd::OnHook(CWPSTRUCT &cwps)
 {
-	CWnd * cWnd = CWnd::FromHandle(core_api::get_main_window());
-	HWND hwndOwner = cWnd->GetSafeHwnd();
-
-	CWnd * tWnd = cWnd->FindWindowExW(hwndOwner, NULL, L"ATL:ReBarWindow32", NULL);
-
+	
+	
+	CWnd * tWnd = GetRebar(); 
 
 	if (cwps.hwnd == tWnd->GetSafeHwnd())
 	{
@@ -137,9 +137,10 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 	case WM_TOOLBAR_SHOWHIDE:
 		if (tbRunExe.toolbar.IsWindowVisible())
-			tbRunExe.toolbar.ShowWindow(SW_HIDE);
-		else 
-			tbRunExe.toolbar.ShowWindow(SW_SHOW);
+			SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)FALSE);
+		else
+			SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)TRUE);
+		ResizeBand(tbRunExe.UpdateCntrl() + 4);
 		break;
 
 	case WM_NOTIFY:
@@ -286,22 +287,40 @@ void CRunExWnd::ResizeBand (int cx)
 	REBARBANDINFO rbi = {0};
 	rbi.cbSize = 	tmp.GetReBarBandInfoSize(); 
 
-	if (SendMessage(hwndRebar, RB_GETBANDINFO, (WPARAM)0, (LPARAM)&rbi) == 0)
-		console::formatter() << "Failed to get BandInfo" ;
-	else
+	if (tbRunExe.toolbar.IsWindowVisible())
 	{
-		rbi.fMask = RBBIM_BACKGROUND | RBBIM_CHILD | RBBIM_CHILDSIZE | 
-			RBBIM_STYLE ;
-		rbi.fStyle = RBBS_GRIPPERALWAYS| RBBS_CHILDEDGE;
-		rbi.cxMinChild = cx;
-		rbi.lpText = _T("");
-		rbi.cx = cx;
-		rbi.hwndChild = tbRunExe.toolbar.GetSafeHwnd();
-//REFACTOR		hToolbar = hCmpWnd;
-
-		if (SendMessage(hwndRebar, RB_SETBANDINFO, (WPARAM)1, (LPARAM)&rbi) == 0)
-			console::formatter() << "Failed to update band";
+		if (SendMessage(hwndRebar, RB_GETBANDINFO, (WPARAM)0, (LPARAM)&rbi) == 0)
+			console::formatter() << "Failed to get BandInfo";
 		else
-			console::formatter() << "Band Updated";	
+		{
+			rbi.fMask = RBBIM_BACKGROUND | RBBIM_CHILD | RBBIM_CHILDSIZE |
+				RBBIM_STYLE;
+			rbi.fStyle = RBBS_GRIPPERALWAYS | RBBS_CHILDEDGE;
+			rbi.cxMinChild = cx;
+			rbi.lpText = _T("");
+			rbi.cx = cx;
+			rbi.hwndChild = tbRunExe.toolbar.GetSafeHwnd();
+
+			if (SendMessage(hwndRebar, RB_SETBANDINFO, (WPARAM)1, (LPARAM)&rbi) == 0)
+				console::formatter() << "Failed to update band";
+			else
+				console::formatter() << "Band Updated";
+		}
 	}
+	int iCnt = SendMessage(hwndRebar, RB_GETBANDCOUNT, 0, 0);
+
+	for (int i = 0; i < iCnt; i++)
+	{
+		if (i == 1)
+		{
+
+			if (tbRunExe.toolbar.IsWindowVisible())
+				SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)TRUE);
+			else
+				SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)FALSE);
+		}
+		else
+			SendMessage(hwndRebar, RB_SHOWBAND, i, 1);
+	}
+
 }

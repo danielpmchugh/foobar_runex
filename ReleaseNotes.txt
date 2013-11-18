@@ -1,19 +1,23 @@
 Still working on...
-Improve button positioning and display when locking the toolbar.
-Improve button positioning and display when repositioning bars.
 Retain toolbar state after shutting down and restarting the application. 
 Context menu does not work on XP
 Text in button matches that of File->Preferences->Default User Interface-> Colors and Fonts
 Hover Functionality
 Additional Error Handling
-Running with UI Columns component
+Context menu working with UI Columns component
 After reset button is lost
-Cleanup preferences text
 Transparent text background
-Vertical Coordinates of text
-Display after locking toolbar 
-Sizing of icon for 32x32
-Check for any memery leaks
+Check for any memory leaks
+
+Release 0.0.7
+Basic functionality when using UI Columns component (context menu needs to be fixed)
+Improved display after locking toolbar 
+Improved button positioning and display when locking the toolbar.
+Improved button positioning and display when repositioning bars.
+Improved sizing of icon for 32x32
+Improved vertical display of text coordinates
+Fixed issue where empty space is displayed after removing runex from toolbar.  Toolbar resizes (no empty space)
+Cleaned up preferences text
 
 Release 0.0.6
 Updates for Visual Studios 2013

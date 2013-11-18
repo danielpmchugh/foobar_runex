@@ -39,7 +39,8 @@ private:
 	
 	CRunExWnd() {}
 	~CRunExWnd() {}
-		
+
+	CWnd * GetRebar();
 	void ResizeBand (int cx);
 	HICON CreateIcon (CSize * pSize, int maxCY);
 

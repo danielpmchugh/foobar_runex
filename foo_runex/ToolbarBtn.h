@@ -59,7 +59,7 @@ public:
 	CToolBar toolbar;// WOULD LIKE TO HIDE THIS
 	HWND GetToolbarHwnd() { return toolbar.GetSafeHwnd(); }
 	
-	HICON CreateIcon(CSize * pSize, int maxCY);
+	HICON CreateIcon(CSize * pSize, int desiredCX, int desiredCY);
 
 private:
 	LRESULT OnLButtonDown(UINT,WPARAM,LPARAM,BOOL&) {m_callback->request_replace(this);return 0;}

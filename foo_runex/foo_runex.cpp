@@ -4,7 +4,7 @@
 #include "RunExWnd.h"
 
 DECLARE_COMPONENT_VERSION(
-  "foo_runex", "0.0.6",
+  "foo_runex", "0.0.7",
 "Component creates toolbar button that runs an external command.\n\
 ////////////////////////////////////////////\n\
 // RunEX (foo_runex.dll)\n\
