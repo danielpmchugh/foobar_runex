@@ -56,6 +56,7 @@ private:
 
 	LRESULT OnHook(CWPSTRUCT& cwps);
 	CFont * m_font;
+	int iPos;
 };
 
 #endif

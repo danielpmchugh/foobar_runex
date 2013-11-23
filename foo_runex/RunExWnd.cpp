@@ -6,9 +6,9 @@
 #include "ToolbarBtn.h"
 #include <strsafe.h>
 
-ui_element_config::ptr ptr;
-ui_element_instance_callback_ptr p_callback;
-CToolbarBarRunExe tbRunExe(ptr, p_callback);
+//ui_element_config::ptr ptr;
+//ui_element_instance_callback_ptr p_callback;
+//CToolbarBarRunExe tbRunExe(ptr, p_callback);
 
 CRunExWnd CRunExWnd::g_instance;
 CWnd * CRunExWnd::contextWnd = NULL;
@@ -51,9 +51,9 @@ HWND CRunExWnd::Create(HWND p_hWndParent)
 		CW_USEDEFAULT, CW_USEDEFAULT, 200, 200);
 	CWnd *cWnd = CWnd::FromHandle(hWnd);
 	cWnd->ShowWindow(SW_HIDE);
-
+	
 	// Initialize Tool bar control
-	tbRunExe.initialize_window(hWnd);
+//	tbRunExe.initialize_window(hWnd);
 		
 	
 	// Create a new rebar band with a reference to the CToolBarRunExe 
@@ -70,15 +70,17 @@ HWND CRunExWnd::Create(HWND p_hWndParent)
 		rbi.cxMinChild = 32;
 		rbi.lpText = _T("");
 		rbi.cx = 32;
-		rbi.hwndChild = tbRunExe.GetToolbarHwnd();
+	//	rbi.hwndChild = tbRunExe.GetToolbarHwnd();
+
+		int iPos = SendMessage(hwndRebar, RB_GETBANDCOUNT, 0, 0);
 	
-		if (SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)1, (LPARAM)&rbi) == 0)
+		if (SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)iPos, (LPARAM)&rbi) == 0)
 			console::formatter() << "Failed to insert band";
 		else
-			console::formatter() << "Band inserted";
+			console::formatter() << "Band inserted at position "<< iPos ;
 	}
-
-	ResizeBand(tbRunExe.UpdateCntrl() + 4);
+	
+	//ResizeBand(tbRunExe.UpdateCntrl() + 4);
 
 
 	CreateHook();	
@@ -89,8 +91,6 @@ HWND CRunExWnd::Create(HWND p_hWndParent)
 
 LRESULT CRunExWnd::OnHook(CWPSTRUCT &cwps)
 {
-	
-	
 	CWnd * tWnd = GetRebar(); 
 
 	if (cwps.hwnd == tWnd->GetSafeHwnd())
@@ -129,18 +129,18 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		Launch(0);		
 		return TRUE;		
 	case WM_UPDATE_CTRL:
-		ResizeBand(tbRunExe.UpdateCntrl()+4);		
+		//ResizeBand(tbRunExe.UpdateCntrl()+4);		
 		break;
 	case WM_QUERYUISTATE:
 		return UISF_ACTIVE;
 		break;	
 
 	case WM_TOOLBAR_SHOWHIDE:
-		if (tbRunExe.toolbar.IsWindowVisible())
-			SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)FALSE);
-		else
-			SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)TRUE);
-		ResizeBand(tbRunExe.UpdateCntrl() + 4);
+//		if (tbRunExe.toolbar.IsWindowVisible())
+	//		SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)FALSE);
+	//	else
+	//		SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)TRUE);
+		//ResizeBand(tbRunExe.UpdateCntrl() + 4);
 		break;
 
 	case WM_NOTIFY:
@@ -202,8 +202,8 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 					console::formatter() << "Inserting menu item";
 
 					pMenu->InsertMenuItemW(12,&mii,1);
-					if (tbRunExe.toolbar.IsWindowVisible())
-						pMenu->CheckMenuItem(12, MF_BYPOSITION|MF_CHECKED   );
+				//	if (tbRunExe.toolbar.IsWindowVisible())
+				//		pMenu->CheckMenuItem(12, MF_BYPOSITION|MF_CHECKED   );
 																			
 				}
 							
@@ -287,7 +287,7 @@ void CRunExWnd::ResizeBand (int cx)
 	REBARBANDINFO rbi = {0};
 	rbi.cbSize = 	tmp.GetReBarBandInfoSize(); 
 
-	if (tbRunExe.toolbar.IsWindowVisible())
+//	if (tbRunExe.toolbar.IsWindowVisible())
 	{
 		if (SendMessage(hwndRebar, RB_GETBANDINFO, (WPARAM)0, (LPARAM)&rbi) == 0)
 			console::formatter() << "Failed to get BandInfo";
@@ -299,7 +299,7 @@ void CRunExWnd::ResizeBand (int cx)
 			rbi.cxMinChild = cx;
 			rbi.lpText = _T("");
 			rbi.cx = cx;
-			rbi.hwndChild = tbRunExe.toolbar.GetSafeHwnd();
+//			rbi.hwndChild = tbRunExe.toolbar.GetSafeHwnd();
 
 			if (SendMessage(hwndRebar, RB_SETBANDINFO, (WPARAM)1, (LPARAM)&rbi) == 0)
 				console::formatter() << "Failed to update band";
@@ -314,13 +314,13 @@ void CRunExWnd::ResizeBand (int cx)
 		if (i == 1)
 		{
 
-			if (tbRunExe.toolbar.IsWindowVisible())
-				SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)TRUE);
-			else
-				SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)FALSE);
+	//		if (tbRunExe.toolbar.IsWindowVisible())
+		//		SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)TRUE);
+		//	else
+			//	SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)1, (LPARAM)FALSE);
 		}
-		else
-			SendMessage(hwndRebar, RB_SHOWBAND, i, 1);
+	//	else
+//			SendMessage(hwndRebar, RB_SHOWBAND, i, 1);
 	}
 
 }

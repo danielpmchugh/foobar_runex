@@ -18,13 +18,13 @@
 
 
 
-class CToolbarBarRunExe : public ui_element_instance, public CWindowImpl<CToolbarBarRunExe >
+class CToolbarBarRunExe : public CWindowImpl<CToolbarBarRunExe >, public ui_element_instance
 {
 public:
-
 	// ATL window class declaration. Replace class name with your own when reusing code.\r
 	DECLARE_WND_CLASS_EX(TEXT("{DC2917D5-1288-4434-A28C-F16CFCE13C4B}"),CS_VREDRAW | CS_HREDRAW,(-1));
 
+	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT();
 	void initialize_window(HWND parent); 
 
 	BEGIN_MSG_MAP(ui_element_dummy)
@@ -42,9 +42,8 @@ public:
 	HWND get_wnd() {return *this;}
 	void set_configuration(ui_element_config::ptr config) {m_config = config;}
 	ui_element_config::ptr get_configuration() {return m_config;}
-	static GUID g_get_guid() {
-		// This is our GUID. Substitute with your own when reusing code.
-		static const GUID guid_myelem = { 0xb46dc166, 0x88f3, 0x4b45, { 0x9f, 0x77, 0xab, 0x33, 0xf4, 0xc3, 0xf2, 0xe4 } };
+	static GUID g_get_guid() {				
+		static const GUID guid_myelem = { 0x8764996f, 0x6cfb, 0x48d8, { 0xb6, 0xfe, 0x20, 0x0c, 0x47, 0x52, 0x2f, 0x2f } };
 		return guid_myelem;
 	}
 	static GUID g_get_subclass() {return ui_element_subclass_utility;}

@@ -5,7 +5,7 @@
 #include "ContextMenuSub.h"
 #include "RunExWnd.h"
 
-const GUID CToolbarBarRunExe::s_guid = { 0xc9e9885f, 0x2c8a, 0x497f, { 0x88, 0xf0, 0x74, 0x70, 0xd9, 0x20, 0x59, 0xe4 } };
+//const GUID CToolbarBarRunExe::s_guid = { 0xc9e9885f, 0x2c8a, 0x497f, { 0x88, 0xf0, 0x74, 0x70, 0xd9, 0x20, 0x59, 0xe4 } };
 
 template<typename TImpl>
 class my_ui_element_impl : public ui_element
@@ -15,7 +15,8 @@ public:
 	GUID get_subclass() { return TImpl::g_get_subclass(); }
 	void get_name(pfc::string_base & out) { TImpl::g_get_name(out); }
 
-	ui_element_instance::ptr instantiate(HWND parent, ui_element_config::ptr cfg, ui_element_instance_callback::ptr callback)
+	//ui_element_instance::ptr instantiate(HWND parent, ui_element_config::ptr cfg, ui_element_instance_callback::ptr callback)	
+	ui_element_instance_ptr instantiate(HWND parent, ui_element_config::ptr cfg, ui_element_instance_callback_ptr callback)
 	{
 		PFC_ASSERT(cfg->get_guid() == get_guid());
 		service_nnptr_t<ui_element_instance_impl_helper> item = new service_impl_t<ui_element_instance_impl_helper>(cfg, callback);
@@ -37,7 +38,7 @@ private:
 };
 
 
-static service_factory_single_t<my_ui_element_impl<CToolbarBarRunExe> > g_ui_element_myimpl_factory;
+static service_factory_t<my_ui_element_impl<CToolbarBarRunExe> > g_ui_element_myimpl_factory;
 
 
 void CToolbarBarRunExe::notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) {
@@ -48,17 +49,16 @@ void CToolbarBarRunExe::notify(const GUID & p_what, t_size p_param1, const void 
 }
 CToolbarBarRunExe::CToolbarBarRunExe(ui_element_config::ptr config, ui_element_instance_callback_ptr p_callback) : m_callback(p_callback), m_config(config)
 {
-
+	m_callback->is_edit_mode_enabled();
+	
 }
 
-LRESULT CToolbarBarRunExe::OnPaint(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
-      BOOL& /*bHandled*/)
-   {
+LRESULT CToolbarBarRunExe::OnPaint(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+ {
       return 0;   
-   }
+ }
 
-LRESULT CToolbarBarRunExe::OnEraseBkgnd(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
-      BOOL& /*bHandled*/)
+LRESULT CToolbarBarRunExe::OnEraseBkgnd(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
       return 0;   
 }
@@ -79,11 +79,9 @@ int CToolbarBarRunExe::UpdateCntrl()
 	toolbar.GetWindowRect(&rect); // Get the size of the toolbar
 	
 	int iMaxCY = rect.bottom - rect.top - 7;
-//	iMaxCY = max(25, iMaxCY);
 	int iDesiredCX = 25;
 	hIcon = CreateIcon(&size, iDesiredCX, iMaxCY);
-	
-		
+			
 	// if LoadImage fails, it returns a NULL handle
 	if (NULL == hIcon)
 	{
@@ -129,14 +127,11 @@ int CToolbarBarRunExe::UpdateCntrl()
 		IMAGEINFO ImageInfo;
 		pList->GetImageInfo(index, &ImageInfo);
 
-		//m_FirstToolBar.SetSizes(CSize(20,20),CSize(10,10));		
 		toolbar.SetButtonInfo(0, ID_TB1_CMD1, TBBS_BUTTON, index);
 		toolbar.Invalidate();
-		//ResizeBand(size.cx + 4);
 	}
 
 	return size.cx;
-	
 }
 
 
@@ -275,6 +270,4 @@ void CToolbarBarRunExe::initialize_window(HWND parent)
 	toolbar.SetButtonStyle(0, BS_PUSHBUTTON | BS_BITMAP);
 
 	console::formatter() << "Created toolbar button";
-
-
 }
