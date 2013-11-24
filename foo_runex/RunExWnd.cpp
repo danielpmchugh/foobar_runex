@@ -13,12 +13,16 @@ cfg_int CRunExWnd::iPos(guid_cfg_iPos, 1);
 CRunExWnd CRunExWnd::g_instance;
 CWnd * CRunExWnd::contextWnd = NULL;
 HWND CRunExWnd::hWnd = NULL;
+HWND CRunExWnd::hwndRebar = NULL;
 
 void CRunExWnd::ShowWindow() {
 	g_instance.Create(core_api::get_main_window());
 }
 
-void CRunExWnd::HideWindow() {
+void CRunExWnd::HideWindow() 
+{
+	SendMessage(hwndRebar, RB_DELETEBAND, (WPARAM)iPos, (LPARAM)0);
+
 	// Destroy the window.
 	//g_instance.Destroy();
 }
@@ -284,18 +288,27 @@ void CRunExWnd::GetBandPosition()
 	int iCnt = SendMessage(hwndRebar, RB_GETBANDCOUNT, 0, 0);
 
 	REBARBANDINFO rbi = { 0 };
-
+	rbi.fMask = RBBIM_CHILD;
 	CReBar tmp;
 	rbi.cbSize = tmp.GetReBarBandInfoSize();
 
 
 	for (int i = 0; i < iCnt; i++)
 	{
-		if (SendMessage(hwndRebar, RB_GETBANDINFO, (WPARAM)i, (LPARAM)&rbi) == 0)
+		console::formatter() << "Checking Pos " << i;
+		if (SendMessage(hwndRebar, RB_GETBANDINFO, (WPARAM)i, (LPARAM)&rbi) != 0)
 		{
 			if (rbi.hwndChild == tbRunExe.GetSafeHwnd())
+			{
+				console::formatter() << "Run Exe Found " << i;
 				iPos = i;
+			}
+			else
+				console::formatter() << "Run Exe Not Found " << i;
+
 		}
+		else
+			console::formatter() << "No Band found " << i;
 	}
 
 }
@@ -305,7 +318,7 @@ void CRunExWnd::ResizeBand (int cx)
 	CReBar tmp;
 	REBARBANDINFO rbi = {0};
 	rbi.cbSize = 	tmp.GetReBarBandInfoSize(); 
-
+	
 	if (tbRunExe.IsWindowVisible())
 	{
 		GetBandPosition();

@@ -54,7 +54,7 @@ private:
 	virtual bool pretranslate_message(MSG * p_msg);
 
 	Utils::PWndSubclasser _pS1;
-	HWND hwndRebar;
+	static HWND hwndRebar;
 	Utils::PWndProcHook p;
 	static CRunExWnd g_instance;
 

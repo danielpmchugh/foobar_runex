@@ -21,10 +21,9 @@ class initquit_runex : public initquit {
 		CRunExWnd::ShowWindow();		
 	}
 
-	virtual void on_quit() {
-		// Do nothing.
-		// The window placement variable will automatically store the 
-		// position and size of our window, if it is currently visible.
+	virtual void on_quit() 
+	{
+		CRunExWnd::HideWindow();
 	}
 };
 
