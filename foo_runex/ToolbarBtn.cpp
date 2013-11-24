@@ -5,62 +5,13 @@
 #include "ContextMenuSub.h"
 #include "RunExWnd.h"
 
-//const GUID CToolbarBarRunExe::s_guid = { 0xc9e9885f, 0x2c8a, 0x497f, { 0x88, 0xf0, 0x74, 0x70, 0xd9, 0x20, 0x59, 0xe4 } };
 
-template<typename TImpl>
-class my_ui_element_impl : public ui_element
+static service_factory_single_t<ui_element_myimpl> g_ui_element_myimpl_factory;
+
+
+CToolbarBarRunExe::CToolbarBarRunExe( ) 
 {
-public:
-	GUID get_guid() { return TImpl::g_get_guid(); }
-	GUID get_subclass() { return TImpl::g_get_subclass(); }
-	void get_name(pfc::string_base & out) { TImpl::g_get_name(out); }
 
-	//ui_element_instance::ptr instantiate(HWND parent, ui_element_config::ptr cfg, ui_element_instance_callback::ptr callback)	
-	ui_element_instance_ptr instantiate(HWND parent, ui_element_config::ptr cfg, ui_element_instance_callback_ptr callback)
-	{
-		PFC_ASSERT(cfg->get_guid() == get_guid());
-		service_nnptr_t<ui_element_instance_impl_helper> item = new service_impl_t<ui_element_instance_impl_helper>(cfg, callback);
-		item->initialize_window(parent);
-		return item;
-	}
-
-	ui_element_config::ptr get_default_configuration() { return TImpl::g_get_default_configuration(); }
-	ui_element_children_enumerator_ptr enumerate_children(ui_element_config::ptr cfg) { return NULL; }
-	bool get_description(pfc::string_base & out) { out = TImpl::g_get_description(); return true; }
-
-private:
-	class ui_element_instance_impl_helper : public TImpl
-	{
-	public:
-		ui_element_instance_impl_helper(ui_element_config::ptr cfg, ui_element_instance_callback::ptr callback)
-			: TImpl(cfg, callback) {}
-	};
-};
-
-
-static service_factory_t<my_ui_element_impl<CToolbarBarRunExe> > g_ui_element_myimpl_factory;
-
-
-void CToolbarBarRunExe::notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) {
-	if (p_what == ui_element_notify_colors_changed || p_what == ui_element_notify_font_changed) {
-		// we use global colors and fonts - trigger a repaint whenever these change.
-		Invalidate();
-	}
-}
-CToolbarBarRunExe::CToolbarBarRunExe(ui_element_config::ptr config, ui_element_instance_callback_ptr p_callback) : m_callback(p_callback), m_config(config)
-{
-	m_callback->is_edit_mode_enabled();
-	
-}
-
-LRESULT CToolbarBarRunExe::OnPaint(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
- {
-      return 0;   
- }
-
-LRESULT CToolbarBarRunExe::OnEraseBkgnd(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{
-      return 0;   
 }
 
 int CToolbarBarRunExe::UpdateCntrl()
@@ -76,7 +27,7 @@ int CToolbarBarRunExe::UpdateCntrl()
 	CSize size;
 
 	RECT rect;
-	toolbar.GetWindowRect(&rect); // Get the size of the toolbar
+	GetWindowRect(&rect); // Get the size of the toolbar
 	
 	int iMaxCY = rect.bottom - rect.top - 7;
 	int iDesiredCX = 25;
@@ -105,7 +56,7 @@ int CToolbarBarRunExe::UpdateCntrl()
 		}
 
 		CImageList *pList;
-		CToolBarCtrl& bar = toolbar.GetToolBarCtrl();
+		CToolBarCtrl& bar = GetToolBarCtrl();
 
 		if (iconInfo.hbmColor == NULL)
 		{
@@ -127,8 +78,8 @@ int CToolbarBarRunExe::UpdateCntrl()
 		IMAGEINFO ImageInfo;
 		pList->GetImageInfo(index, &ImageInfo);
 
-		toolbar.SetButtonInfo(0, ID_TB1_CMD1, TBBS_BUTTON, index);
-		toolbar.Invalidate();
+		SetButtonInfo(0, ID_TB1_CMD1, TBBS_BUTTON, index);
+		Invalidate();
 	}
 
 	return size.cx;
@@ -263,11 +214,27 @@ HICON CToolbarBarRunExe::CreateIcon(CSize * pSize, int desiredCX, int desiredCY)
 
 void CToolbarBarRunExe::initialize_window(HWND parent)
 {
-	WIN32_OP(Create(parent, 0, 0, 0, WS_EX_STATICEDGE) != NULL);
 
-	toolbar.CreateEx(CWnd::FromHandle(parent), TBSTYLE_FLAT | TBSTYLE_TRANSPARENT);
-	toolbar.LoadToolBar(IDR_TOOLBAR1);
-	toolbar.SetButtonStyle(0, BS_PUSHBUTTON | BS_BITMAP);
+	CreateEx(CWnd::FromHandle(parent), TBSTYLE_FLAT | TBSTYLE_TRANSPARENT);
+	LoadToolBar(IDR_TOOLBAR1);
+	SetButtonStyle(0, BS_PUSHBUTTON | BS_BITMAP);
+
+
+
+	ui_element_instance_callback_ptr p_callback;
+
+	static ui_element_config::ptr ptr_cfg = CMyElemWindowB::g_get_default_configuration();
+	static ui_element_myinstance_callback callback;
+
+	ui_element_myimpl &ptr = g_ui_element_myimpl_factory.get_static_instance();
+	static service_ptr_t<ui_element_instance> item = ptr.instantiate(GetSafeHwnd(), ptr_cfg, &callback);
+
+	t_ui_font t = callback.query_font_ex(ui_font_default);
 
 	console::formatter() << "Created toolbar button";
+
+}
+
+
+CMyElemWindowB::CMyElemWindowB(ui_element_config::ptr config, ui_element_instance_callback_ptr p_callback) : m_callback(p_callback), m_config(config) {
 }

@@ -279,30 +279,7 @@ private:
 	pfc::refcounter m_counter;
 };
 
-
-#if 0
-#if _WIN32_WINNT >= 0x501
-static void HeaderControl_SetSortIndicator(CHeaderCtrl header, int column, bool isUp) {
-	const int total = header.GetItemCount();
-	for(int walk = 0; walk < total; ++walk) {
-		HDITEM item = {}; item.mask = HDI_FORMAT;
-		if (header.GetItem(walk,&item)) {
-			DWORD newFormat = item.fmt;
-			newFormat &= ~( HDF_SORTUP | HDF_SORTDOWN );
-			if (walk == column) {
-				newFormat |= isUp ? HDF_SORTUP : HDF_SORTDOWN;
-			}
-			if (newFormat != item.fmt) {
-				item.fmt = newFormat;
-				header.SetItem(walk,&item);
-			}
-		}
-	}
-}
-#endif
-
-
-typedef CWinTraits<WS_POPUP,WS_EX_TRANSPARENT|WS_EX_LAYERED|WS_EX_TOPMOST|WS_EX_TOOLWINDOW> CFlashWindowTraits;
+typedef CWinTraits<WS_POPUP, WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW> CFlashWindowTraits;
 
 class CFlashWindow : public CWindowImpl<CFlashWindow,CWindow,CFlashWindowTraits> {
 public:
@@ -330,42 +307,73 @@ public:
 	}
 
 	BEGIN_MSG_MAP(CFlashWindow)
-		MSG_WM_CREATE(OnCreate)
-		MSG_WM_TIMER(OnTimer)
-		MSG_WM_DESTROY(OnDestroy)
+		MESSAGE_HANDLER(WM_CREATE,OnCreate)
+		MESSAGE_HANDLER(WM_TIMER,OnTimer)
+		MESSAGE_HANDLER(WM_DESTROY,OnDestroy)
 	END_MSG_MAP()
 
 	DECLARE_WND_CLASS_EX(TEXT("{2E124D52-131F-4004-A569-2316615BE63F}"),0,COLOR_HIGHLIGHT);
 private:
-	void OnDestroy() throw() {
+	LRESULT OnDestroy(UINT, WPARAM id, LPARAM, BOOL&)
+	{
 		KillTimer(KTimerID);
+		return 0;
 	}
 	enum {
 		KTimerID = 0x47f42dd0
 	};
-	void OnTimer(WPARAM id) {
+	
+	LRESULT OnTimer(UINT, WPARAM id, LPARAM, BOOL&)
+	{
 		if (id == KTimerID) {
 			switch(++m_tickCount) {
-				case 1:
-					ShowWindow( SW_HIDE);
-					break;
-				case 2:
-					ShowAbove(m_parent);
-					break;
-				case 3:
-					ShowWindow(SW_HIDE);
-					KillTimer(KTimerID);
-					break;
+			case 1:
+				ShowWindow( SW_HIDE);
+				break;
+			case 2:
+				ShowAbove(m_parent);
+				break;
+			case 3:
+				ShowWindow(SW_HIDE);
+				KillTimer(KTimerID);
+				break;
 			}
 		}
+		return 0;
 	}
-	LRESULT OnCreate(LPCREATESTRUCT) throw() {
+
+	LRESULT OnCreate(UINT, WPARAM, LPARAM, BOOL&)
+	{
 		SetLayeredWindowAttributes(*this,0,128,LWA_ALPHA);
 		return 0;
 	}
 	CWindow m_parent;
 	t_uint32 m_tickCount;
 };
+
+
+#if 0
+#if _WIN32_WINNT >= 0x501
+static void HeaderControl_SetSortIndicator(CHeaderCtrl header, int column, bool isUp) {
+	const int total = header.GetItemCount();
+	for(int walk = 0; walk < total; ++walk) {
+		HDITEM item = {}; item.mask = HDI_FORMAT;
+		if (header.GetItem(walk,&item)) {
+			DWORD newFormat = item.fmt;
+			newFormat &= ~( HDF_SORTUP | HDF_SORTDOWN );
+			if (walk == column) {
+				newFormat |= isUp ? HDF_SORTUP : HDF_SORTDOWN;
+			}
+			if (newFormat != item.fmt) {
+				item.fmt = newFormat;
+				header.SetItem(walk,&item);
+			}
+		}
+	}
+}
+#endif
+
+
 
 class CTypableWindowScope {
 public:

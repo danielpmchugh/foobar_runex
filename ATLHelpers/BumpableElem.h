@@ -5,10 +5,10 @@ private:
 public:
 	TEMPLATE_CONSTRUCTOR_FORWARD_FLOOD_WITH_INITIALIZER(ImplementBumpableElem, TClass, {_init();} )
 
-	BEGIN_MSG_MAP_EX(ImplementBumpableElem)
-		MSG_WM_DESTROY(OnDestroy)
-		CHAIN_MSG_MAP(__super)
-	END_MSG_MAP_HOOK()
+	BEGIN_MSG_MAP(ImplementBumpableElem)
+		MESSAGE_HANDLER(WM_DESTROY,OnDestroy)
+	//	CHAIN_MSG_MAP(__super)
+	END_MSG_MAP()
 
 	void notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) {
 		if (p_what == ui_element_notify_visibility_changed && p_param2 == 0 && m_flash.m_hWnd != NULL) m_flash.Deactivate();
@@ -26,10 +26,12 @@ public:
 		instances -= this;
 	}
 private:
-	void OnDestroy() throw() {
+	LRESULT OnDestroy(UINT, WPARAM id, LPARAM, BOOL&)
+	{
 		m_selfDestruct = true;
 		m_flash.CleanUp();
 		SetMsgHandled(FALSE);
+		return 0;
 	}
 	bool _bump() {
 		if (m_selfDestruct || m_hWnd == NULL) return false;

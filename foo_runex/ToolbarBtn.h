@@ -3,151 +3,93 @@
 #include "window_helper.h"
 #include <afxext.h>
 
-// This class implements our window. 
-// It uses a helper class from window_helper.h that emulates
-// ATL/WTL conventions. The custom helper class is used to
-// allow this tutorial to be compiled when ATL/WTL is not
-// available, for example on Visual C++ 2008 Express Edition.
-// The message_filter is used to process keyboard shortcuts.
-// To be notified about playback status changes, we need a play
-// callback. Those callbacks ar registered and unregistered in
-// foobar2000 0.9. Since all callback methods are guaranteed to
-// be called in the context of the main thread, we can derive
-// our window class from play_callback and register 'this'.
-
-
-
-
-class CToolbarBarRunExe : public CWindowImpl<CToolbarBarRunExe >, public ui_element_instance
+class CToolbarBarRunExe : public CToolBar
 {
+
 public:
-	// ATL window class declaration. Replace class name with your own when reusing code.\r
-	DECLARE_WND_CLASS_EX(TEXT("{DC2917D5-1288-4434-A28C-F16CFCE13C4B}"),CS_VREDRAW | CS_HREDRAW,(-1));
+	CToolbarBarRunExe();
 
-	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT();
-	void initialize_window(HWND parent); 
+	void initialize_window(HWND parent);
+	
+	int UpdateCntrl();
 
-	BEGIN_MSG_MAP(ui_element_dummy)
-		MESSAGE_HANDLER(WM_LBUTTONDOWN,OnLButtonDown);
-		MESSAGE_HANDLER(WM_ERASEBKGND,OnEraseBkgnd)
-		MESSAGE_HANDLER(WM_PAINT,OnPaint);
+private:
+	HICON CreateIcon(CSize * pSize, int desiredCX, int desiredCY);
+
+
+};
+
+
+class CMyElemWindowB : public ui_element_instance, public CWindowImpl<CMyElemWindowB> {
+public:
+	// ATL window class declaration. Replace class name with your own when reusing code.
+	DECLARE_WND_CLASS_EX(TEXT("{DC2917D5-1288-4434-A28C-F16CFCE13C4B}"), CS_VREDRAW | CS_HREDRAW, (-1));
+
+	void initialize_window(HWND parent)
+	{
+		WIN32_OP(Create(parent, 0, 0, 0, WS_EX_STATICEDGE) != NULL);
+	}
+
+	BEGIN_MSG_MAP(CMyElemWindowB)
 	END_MSG_MAP()
 
-	GUID get_guid() { return g_get_guid(); }
-	GUID get_subclass() { return g_get_subclass(); }
+	CMyElemWindowB(ui_element_config::ptr, ui_element_instance_callback_ptr p_callback);
+	HWND get_wnd() { return *this; }
+	void set_configuration(ui_element_config::ptr config) { m_config = config; }
+	ui_element_config::ptr get_configuration() { return m_config; }
+	static GUID g_get_guid() {
+		// This is our GUID. Substitute with your own when reusing code.
+		static const GUID guid_myelem = { 0xffffffff, 0x6cfb, 0x48d8, { 0xb6, 0xfe, 0x20, 0x0c, 0x47, 0x52, 0x2f, 0x2f } };
+		return guid_myelem;
+	}
+	static GUID g_get_subclass() {
+		return ui_element_subclass_containers; 
+	}
+	static void g_get_name(pfc::string_base & out) { out = "Sample UI Element"; }
+	static ui_element_config::ptr g_get_default_configuration()
+	{
+		return ui_element_config::g_create_empty(g_get_guid());
+	}
+	static const char * g_get_description() { return "This is a sample UI Element."; }
+
+	void notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) {};
+private:
+	ui_element_config::ptr m_config;
+protected:
+	const ui_element_instance_callback_ptr m_callback;
+};
+
+class ui_element_myinstance_callback : public ui_element_instance_callback
+{
+public:
 	int FB2KAPI service_release() throw() { return 1; }
 	int FB2KAPI service_add_ref() throw() { return 1; }
 
-	CToolbarBarRunExe(ui_element_config::ptr, ui_element_instance_callback_ptr p_callback);
-	HWND get_wnd() {return *this;}
-	void set_configuration(ui_element_config::ptr config) {m_config = config;}
-	ui_element_config::ptr get_configuration() {return m_config;}
-	static GUID g_get_guid() {				
-		static const GUID guid_myelem = { 0x8764996f, 0x6cfb, 0x48d8, { 0xb6, 0xfe, 0x20, 0x0c, 0x47, 0x52, 0x2f, 0x2f } };
-		return guid_myelem;
-	}
-	static GUID g_get_subclass() {return ui_element_subclass_utility;}
-	static void g_get_name(pfc::string_base & out) {out = "Sample UI Element";}
-	static ui_element_config::ptr g_get_default_configuration() {return ui_element_config::g_create_empty(g_get_guid());}
-	static const char * g_get_description() {return "This is a sample UI Element.";}
-	
-	void notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size);
+	void on_min_max_info_change() {};
+	//! Deprecated, does nothing.
+	void on_alt_pressed(bool p_state) {};
+	//! Returns true on success, false when the color is undefined and defaults such as global windows settings should be used.
+	bool query_color(const GUID & p_what, t_ui_color & p_out) { return false; }
+	//! Tells the host that specified element wants to activate itself as a result of some kind of external user command (eg. menu command). Host should ensure that requesting child element's window is visible.\n
+	//! @returns True when relevant child element window has been properly made visible and requesting code should proceed to SetFocus their window etc, false when denied.
+	bool request_activation(service_ptr_t<class ui_element_instance> p_item) { return true; }
 
-	int UpdateCntrl();
-	
-	CToolBar toolbar;// WOULD LIKE TO HIDE THIS
-	HWND GetToolbarHwnd() { return toolbar.GetSafeHwnd(); }
-	
-	HICON CreateIcon(CSize * pSize, int desiredCX, int desiredCY);
+	//! Queries whether "edit mode" is enabled. Most of UI element editing functionality should be locked when it's not.
+	bool is_edit_mode_enabled() { return true; }
 
-private:
-	LRESULT OnLButtonDown(UINT,WPARAM,LPARAM,BOOL&) {m_callback->request_replace(this);return 0;}
-	LRESULT OnPaint(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-	LRESULT OnEraseBkgnd(UINT /*nMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	
+	//! Tells the host that the user has requested the element to be replaced with another one.
+	//! Note: this is generally used only when "edit mode" is enabled, but legal to call when it's not (eg. dummy element calls it regardless of settings when clicked).
+	void request_replace(service_ptr_t<class ui_element_instance> p_item) {}
 
-	ui_element_config::ptr m_config;
-	
-protected:
-	// this must be declared as protected for ui_element_impl_withpopup<> to work.
-	static const GUID s_guid;
-	const ui_element_instance_callback_ptr m_callback;
+	//! Deprecated - use query_font_ex. Equivalent to query_font_ex(ui_font_default).
+	t_ui_font query_font() { return query_font_ex(ui_font_default); }
 
-	
+	//! Retrieves an user-configurable font to use for specified kind of display. See ui_font_* constant for possible parameters.
+	t_ui_font query_font_ex(const GUID & p_what) { return NULL; }
+
 };
 
-#if 0
 
-	static void ShowWindow(HWND hwnd);
-	static void HideWindow();
+class ui_element_myimpl : public ui_element_impl<CMyElemWindowB> {};
 
-	// Dispatches window messages to the appropriate handler functions.
-	BOOL ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT & lResult);
 
-	// Message handler functions.
-	// The function signatures are intended to be compatible with the MSG_WM_* macros in WTL.
-	LRESULT OnCreate(LPCREATESTRUCT pCreateStruct);
-	void OnDestroy();
-	void OnClose();
-	void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
-	void OnLButtonDown(UINT nFlags, CPoint point);
-	void OnContextMenu(HWND hWnd, CPoint point);
-	void OnSetFocus(HWND hWndOld);
-	void OnPaint(HDC hdc);
-	void OnPrintClient(HDC hdc, UINT uFlags);
-
-	// Helper to handle double buffering when appropriate.
-	void PaintContent(PAINTSTRUCT &ps);
-
-	// Real drawing is done here.
-	void Draw(HDC hdc, CRect rcPaint);
-
-	// helpers methods
-	HWND Create(HWND hWndParent);
-	inline void RedrawWindow() {::RedrawWindow(m_hWnd, 0, 0, RDW_INVALIDATE);}
-
-private:
-	// This is a singleton class.
-	CTutorialWindow() {}
-	~CTutorialWindow() {}
-		
-	void UpdateCntrl();
-
-	CToolBar m_FirstToolBar;
-
-	static bool cfg_enabled;
-
-	static CTutorialWindow g_instance;
-
-	void set_selection(metadb_handle_list_cref p_items);
-
-	// message_filter methods
-	virtual bool pretranslate_message(MSG * p_msg);
-
-	// play_callback methods (the ones we're interested in)
-	virtual void on_playback_new_track(metadb_handle_ptr p_track);
-	virtual void on_playback_stop(play_control::t_stop_reason reason);
-	virtual void on_playback_dynamic_info_track(const file_info & p_info);
-
-	// play_callback methods (the rest)
-	virtual void on_playback_starting(play_control::t_track_command p_command, bool p_paused) {}
-	virtual void on_playback_seek(double p_time) {}
-	virtual void on_playback_pause(bool p_state) {}
-	virtual void on_playback_edited(metadb_handle_ptr p_track) {}
-	virtual void on_playback_dynamic_info(const file_info & p_info) {}
-	virtual void on_playback_time(double p_time) {}
-	virtual void on_volume_change(float p_new_val) {}
-
-	void ResizeBand (int cx);
-	HICON CreateIcon (CSize * pSize, int maxCY);
-
-private:
-	CFont m_font;
-	HWND hwndToolbar;
-
-	// This is used to notify other components of the selection
-	// in our window. In this overly simplistic case, our selection
-	// will be empty, when playback is stopped. Otherwise it will
-	// contain the playing track.
-	ui_selection_holder::ptr m_selection;
-};
-#endif

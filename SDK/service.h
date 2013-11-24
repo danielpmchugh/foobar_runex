@@ -571,7 +571,7 @@ class service_factory_single_t : public service_factory_base_t<typename T::t_int
 	service_impl_single_t<T> g_instance;
 public:
 	TEMPLATE_CONSTRUCTOR_FORWARD_FLOOD(service_factory_single_t,g_instance)
-
+ 
 	void instance_create(service_ptr_t<service_base> & p_out) {
 		p_out = pfc::implicit_cast<service_base*>(pfc::implicit_cast<typename T::t_interface_entrypoint*>(pfc::implicit_cast<T*>(&g_instance)));
 	}

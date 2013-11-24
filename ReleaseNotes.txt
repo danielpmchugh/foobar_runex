@@ -9,6 +9,9 @@ After reset button is lost
 Transparent text background
 Check for any memory leaks
 
+Release 0.0.8
+Fixed bug when trying to run with XP
+
 Release 0.0.7
 Basic functionality when using UI Columns component (context menu needs to be fixed)
 Improved display after locking toolbar 

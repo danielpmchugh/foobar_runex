@@ -1,9 +1,12 @@
 #ifndef RUNEXWND_H
 #define RUNEXWND_H
+
 #include "stdafx.h"
 #include "window_helper.h"
 #include "Utility/WndSubclasser.h"
 #include "Utility/WndProcHook.h"
+#include "ToolbarBtn.h"
+
 
 class CRunExWnd :
 	public CSimpleWindowImpl<CRunExWnd>,
@@ -44,6 +47,7 @@ private:
 	void ResizeBand (int cx);
 	HICON CreateIcon (CSize * pSize, int maxCY);
 
+	void GetBandPosition();
 	void set_selection(metadb_handle_list_cref p_items);
 
 	// message_filter methods
@@ -56,7 +60,16 @@ private:
 
 	LRESULT OnHook(CWPSTRUCT& cwps);
 	CFont * m_font;
-	int iPos;
+	const int RPAD = 4;
+	static HWND tbHwnd;
+
+	static const GUID guid_cfg_iPos;
+
+	static cfg_int iPos;
+
+	//static advconfig_integer_factory guid_cfg_iPos;
+private:
+	CToolbarBarRunExe tbRunExe;
 };
 
 #endif
