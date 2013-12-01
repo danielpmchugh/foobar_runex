@@ -199,13 +199,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
-    <Text Include="ReleaseNotes.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ContextMenuSub.h" />
     <ClInclude Include="preferences.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RunExWnd.h" />
+    <ClInclude Include="RunExWndInter.h" />
     <ClInclude Include="SmartPtr.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="ToolbarBtn.h" />
@@ -222,6 +222,7 @@
     <ClCompile Include="foo_runex.cpp" />
     <ClCompile Include="preferences.cpp" />
     <ClCompile Include="RunExWnd.cpp" />
+    <ClCompile Include="RunExWndInter.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

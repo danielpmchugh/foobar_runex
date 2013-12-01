@@ -1,12 +1,13 @@
 #include "stdafx.h"
 
-#include "wndsubclasser.h"
 #include "WndProcHook.h"
 #include "SmartPtr.h"
 #include <list>
 #include <map>
 #include <afxmt.h>
 #include "STrace.h"
+
+#include "wndsubclasser.h"
 using namespace Utils;
 using namespace Safe;
 using namespace Mfc;

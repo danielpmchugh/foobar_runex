@@ -1,13 +1,15 @@
 Still working on...
-Retain toolbar state after shutting down and restarting the application. 
 Context menu does not work on XP
 Text in button matches that of File->Preferences->Default User Interface-> Colors and Fonts
 Hover Functionality
 Additional Error Handling
 Context menu working with UI Columns component
-After reset button is lost
 Transparent text background
 Check for any memory leaks
+
+Release 0.0.9
+After reset button is lost
+Retain toolbar state after shutting down and restarting the application. 
 
 Release 0.0.8
 Fixed bug when trying to run with XP

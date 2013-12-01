@@ -1,5 +1,6 @@
 #include "../SDK/foobar2000.h"
 #include "../SDK/component.h"
+#include "../foo_runex/RunExWndInter.h"
 
 static HINSTANCE g_hIns;
 
@@ -81,7 +82,9 @@ namespace {
 		t_uint32 get_version() {return FOOBAR2000_CLIENT_VERSION;}
 		pservice_factory_base get_service_list() {return service_factory_base::__internal__list;}
 
-		void get_config(stream_writer * p_stream,abort_callback & p_abort) {
+		void get_config(stream_writer * p_stream,abort_callback & p_abort) 
+		{
+			CRunExWndInter::SaveConifg();
 			cfg_var::config_write_file(p_stream,p_abort);
 		}
 

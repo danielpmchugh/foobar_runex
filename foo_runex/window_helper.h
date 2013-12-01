@@ -132,7 +132,7 @@ static bool test_rect(const RECT * rc) {
 	return MonitorFromRect(rc,MONITOR_DEFAULTTONULL) != NULL;
 }
 
-
+/*
 
 class CMemoryDC : public CDC
 {
@@ -154,7 +154,7 @@ public:
 		::BitBlt(m_hDCOriginal, m_rcPaint.left, m_rcPaint.top, m_rcPaint.Width(), m_rcPaint.Height(), m_hDC, m_rcPaint.left, m_rcPaint.top, SRCCOPY);
 		::SelectObject(m_hDC, m_hBmpOld);
 	}
-};
+};*/
 
 extern cfg_bool cfg_enabled;
 

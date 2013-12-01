@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include <afxcmn.h>
+#include <afxext.h>
+
 #include "preferences.h"
 #include "ToolbarBtn.h"
 #include "ContextMenuSub.h"

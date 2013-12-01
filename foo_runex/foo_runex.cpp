@@ -5,7 +5,7 @@
 #include "ToolbarBtn.h"
 
 DECLARE_COMPONENT_VERSION(
-  "foo_runex", "0.0.8",
+  "foo_runex", "0.0.9",
 "Component creates toolbar button that runs an external command.\n\
 ////////////////////////////////////////////\n\
 // RunEX (foo_runex.dll)\n\
@@ -14,16 +14,18 @@ DECLARE_COMPONENT_VERSION(
 ////////////////////////////////////////////\n"
 );
 
-  
+#include "RunExWndInter.h"
+
 class initquit_runex : public initquit {
+
 	virtual void on_init() 
 	{		
-		CRunExWnd::ShowWindow();		
+		CRunExWndInter::ShowWindow();
 	}
 
 	virtual void on_quit() 
 	{
-		CRunExWnd::HideWindow();
+		CRunExWndInter::HideWindow();
 	}
 };
 

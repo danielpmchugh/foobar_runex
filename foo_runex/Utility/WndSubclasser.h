@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Smartptr.h"
-
+#undef	_WINDOWS_
+#include <afxwin.h>
 namespace Utils{
 
 	//provide a way to sublass a window.

@@ -6,25 +6,53 @@
 #include <strsafe.h>
 
 
-const GUID CRunExWnd::guid_cfg_iPos = { 0x81154312, 0x8df3, 0x4674, { 0x84, 0x36, 0xf1, 0x81, 0x37, 0xc7, 0x34, 0x15 } };
+const GUID CRunExWnd::guid_cfg_iPos   = { 0x81154312, 0x8df3, 0x4674, { 0x84, 0x36, 0xf1, 0x81, 0x37, 0xc7, 0x34, 0x15 } };
+const GUID CRunExWnd::guid_cfg_iVis   = { 0x81154315, 0x8df3, 0x4674, { 0x84, 0x36, 0xf1, 0x81, 0x37, 0xc7, 0x34, 0x11 } };
+const GUID CRunExWnd::guid_cfg_iStyle = { 0x81154311, 0x8be3, 0x1674, { 0x84, 0x36, 0xf1, 0x81, 0x37, 0xc7, 0x34, 0x18 } };
 
-cfg_int CRunExWnd::iPos(guid_cfg_iPos, 1);
+cfg_int  CRunExWnd::iPos	 (guid_cfg_iPos, 1);
+cfg_bool CRunExWnd::isVisible(guid_cfg_iVis, false);
+cfg_int  CRunExWnd::iStyle	 (guid_cfg_iStyle, RBBS_GRIPPERALWAYS | RBBS_CHILDEDGE);
 
-CRunExWnd CRunExWnd::g_instance;
 CWnd * CRunExWnd::contextWnd = NULL;
 HWND CRunExWnd::hWnd = NULL;
 HWND CRunExWnd::hwndRebar = NULL;
 
 void CRunExWnd::ShowWindow() {
-	g_instance.Create(core_api::get_main_window());
+	console::formatter() << "Band is visible=" << isVisible;
+	console::formatter() << "Band Position is=" << iPos;
+	console::formatter() << "Band Style is=" << iStyle;
+
 }
 
 void CRunExWnd::HideWindow() 
 {
-	SendMessage(hwndRebar, RB_DELETEBAND, (WPARAM)iPos, (LPARAM)0);
+	
+}
 
-	// Destroy the window.
-	//g_instance.Destroy();
+void CRunExWnd::SaveConfig()
+{
+	CReBar tmp;
+	REBARBANDINFO rbi = { 0 };
+	rbi.cbSize = tmp.GetReBarBandInfoSize();
+	rbi.fMask = RBBIM_STYLE;
+	GetBandPosition();
+	if (SendMessage(hwndRebar, RB_GETBANDINFO, (WPARAM)iPos, (LPARAM)&rbi) != 0)
+	{
+		if (rbi.fStyle & RBBS_NOGRIPPER)
+		{
+			rbi.fStyle = rbi.fStyle & (RBBS_GRIPPERALWAYS ^ 0xFFFFFFFF); // TURN OFF RBBS_GRIPPERALWAYS
+		}
+		else
+		{
+			rbi.fStyle = rbi.fStyle | RBBS_GRIPPERALWAYS; 
+		}
+	}
+	iStyle = rbi.fStyle;
+
+	SendMessage(hwndRebar, RB_DELETEBAND, (WPARAM)iPos, 0);
+
+
 }
 
 CWnd * CRunExWnd::GetRebar()
@@ -69,18 +97,19 @@ HWND CRunExWnd::Create(HWND p_hWndParent)
 	else
 	{
 		rbi.fMask = RBBIM_BACKGROUND | RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE ;
-		rbi.fStyle = RBBS_GRIPPERALWAYS| RBBS_CHILDEDGE;
+		rbi.fStyle = iStyle;
 		rbi.cxMinChild = 32;
 		rbi.lpText = _T("");
 		rbi.cx = 32;
 		rbi.hwndChild = tbRunExe.GetSafeHwnd();
 
-		iPos = SendMessage(hwndRebar, RB_GETBANDCOUNT, 0, 0);
 	
 		if (SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)iPos, (LPARAM)&rbi) == 0)
 			console::formatter() << "Failed to insert band";
 		else
 			console::formatter() << "Band inserted at position "<< iPos ;
+
+		SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)iPos, (LPARAM)isVisible);
 	}
 	
 	ResizeBand(tbRunExe.UpdateCntrl() + RPAD);
@@ -95,12 +124,57 @@ LRESULT CRunExWnd::OnHook(CWPSTRUCT &cwps)
 {
 	CWnd * tWnd = GetRebar(); 
 
-	if (cwps.hwnd == tWnd->GetSafeHwnd())
+	//if (cwps.hwnd == tWnd->GetSafeHwnd())
 	{
 		switch (cwps.message)
 		{
 		case WM_CONTEXTMENU:
-			SendMessage(this->m_hWnd, WM_CONTEXT_MENU_FB, 0, 0);
+			if (cwps.hwnd == tWnd->GetSafeHwnd())
+				SendMessage(this->m_hWnd, WM_CONTEXT_MENU_FB, 0, 0);
+			break;
+		case WM_NCHITTEST:
+		case WM_SETCURSOR:
+		case WM_ERASEBKGND:
+		case WM_PARENTNOTIFY:
+		case WM_MOUSEACTIVATE:
+		case WM_PAINT:
+		case WM_WINDOWPOSCHANGING:
+		case WM_WINDOWPOSCHANGED:
+		case WM_SIZE:
+		case WM_CHILDACTIVATE:
+		case WM_NCPAINT:
+		case WM_CAPTURECHANGED:
+		case WM_GETDLGCODE:
+		case WM_NCCALCSIZE:
+		case WM_CTLCOLORSTATIC:
+		case WM_PRINTCLIENT:
+		case WM_SETTEXT:
+		case WM_STYLECHANGING:
+		case WM_SETREDRAW:
+		case WM_STYLECHANGED:
+		case WM_COMMAND:
+		case WM_NOTIFY:
+		case WM_CTLCOLORDLG: //chec
+		case WM_CTLCOLORBTN:
+		case WM_GETTEXT:
+		case WM_GETTEXTLENGTH:
+		case WM_MOVE:
+		case WM_USER:
+		case WM_GETFONT:
+		case 0xB6:
+		case 0xBA:
+		case 404:
+		case RBN_LAYOUTCHANGED:
+		case WM_VSCROLL:
+		case WM_ENTERIDLE:
+		case WM_SYSCOMMAND:
+			break;
+		case WM_MENUSELECT:
+			char buf[12];
+			_snprintf_s(buf, 12, 12, "%X", cwps.hwnd);
+			char buf2[12];
+			_snprintf_s(buf2, 12, 12, "%X", cwps.message);
+			console::formatter() << "HWND=" << buf << "MESSAGE=" << buf2 << cwps.lParam << " " << cwps.wParam;
 			break;
 		}
 	}
@@ -138,10 +212,20 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		break;	
 
 	case WM_TOOLBAR_SHOWHIDE:
-		if (tbRunExe.IsWindowVisible())
-			SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)iPos, (LPARAM)FALSE);
-		else
-			SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)iPos, (LPARAM)TRUE);
+		isVisible = !tbRunExe.IsWindowVisible();
+		
+		if (isVisible) // Just turned visible, put it at the end.
+		{
+			GetBandPosition();
+			int iCnt = SendMessage(hwndRebar, RB_GETBANDCOUNT, 0, 0);
+			if (iPos != iCnt-1)
+			{
+				SendMessage(hwndRebar, RB_MOVEBAND, iPos, iCnt-1);
+				GetBandPosition();
+			}
+		}
+
+		SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)iPos, (LPARAM)isVisible);
 		ResizeBand(tbRunExe.UpdateCntrl() + RPAD);
 		break;
 
@@ -319,16 +403,16 @@ void CRunExWnd::ResizeBand (int cx)
 	REBARBANDINFO rbi = {0};
 	rbi.cbSize = 	tmp.GetReBarBandInfoSize(); 
 	
+	GetBandPosition();
 	if (tbRunExe.IsWindowVisible())
-	{
-		GetBandPosition();
+	{	
 		if (SendMessage(hwndRebar, RB_GETBANDINFO, (WPARAM)iPos, (LPARAM)&rbi) == 0)
 			console::formatter() << "Failed to get BandInfo";
 		else
 		{
 			rbi.fMask = RBBIM_BACKGROUND | RBBIM_CHILD | RBBIM_CHILDSIZE |
 				RBBIM_STYLE;
-			rbi.fStyle = RBBS_GRIPPERALWAYS | RBBS_CHILDEDGE;
+			rbi.fStyle = iStyle;
 			rbi.cxMinChild = cx;
 			rbi.lpText = _T("");
 			rbi.cx = cx;
@@ -340,19 +424,5 @@ void CRunExWnd::ResizeBand (int cx)
 				console::formatter() << "Band Updated";
 		}
 	}
-	int iCnt = SendMessage(hwndRebar, RB_GETBANDCOUNT, 0, 0);
-
-	for (int i = 0; i < iCnt; i++)
-	{
-		if (i == iPos)
-		{
-			if (tbRunExe.IsWindowVisible())
-				SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)iPos, (LPARAM)TRUE);
-			else
-				SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)iPos, (LPARAM)FALSE);
-		}
-//		else
-	//		SendMessage(hwndRebar, RB_SHOWBAND, i, 1);
-	}
-
+	SendMessage(hwndRebar, RB_SHOWBAND, (WPARAM)iPos, (LPARAM)isVisible);
 }

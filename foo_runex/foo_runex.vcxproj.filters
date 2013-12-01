@@ -19,7 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
-    <Text Include="ReleaseNotes.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -61,6 +60,9 @@
     <ClInclude Include="ToolbarBtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RunExWndInter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -100,6 +102,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ToolbarBtn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RunExWndInter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

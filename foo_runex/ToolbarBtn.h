@@ -1,7 +1,6 @@
 #pragma once
 
 #include "window_helper.h"
-#include <afxext.h>
 
 class CToolbarBarRunExe : public CToolBar
 {

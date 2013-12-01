@@ -1,7 +1,7 @@
 #ifndef RUNEXWND_H
 #define RUNEXWND_H
 
-#include "stdafx.h"
+
 #include "window_helper.h"
 #include "Utility/WndSubclasser.h"
 #include "Utility/WndProcHook.h"
@@ -17,8 +17,9 @@ public:
 	static CWnd * contextWnd;		
 	typedef CSimpleWindowImpl<CRunExWnd> super;
 	
-	static void ShowWindow();
-	static void HideWindow();
+	void ShowWindow();
+	void HideWindow();
+	void SaveConfig();
 
 	// Dispatches window messages to the appropriate handler functions.
 	BOOL ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT & lResult);
@@ -38,11 +39,18 @@ public:
 	void Launch(UINT someparam);
 	
 	static HWND hWnd;
+	CRunExWnd() 
+	{
+		console::formatter() << "Constructor CRunExWnd";
+	}
+	~CRunExWnd() 
+	{
+		console::formatter() << "Deconstructor CRunExWnd";
+	}
+
 private:
 	
-	CRunExWnd() {}
-	~CRunExWnd() {}
-
+	
 	CWnd * GetRebar();
 	void ResizeBand (int cx);
 	HICON CreateIcon (CSize * pSize, int maxCY);
@@ -55,8 +63,6 @@ private:
 
 	Utils::PWndSubclasser _pS1;
 	static HWND hwndRebar;
-	Utils::PWndProcHook p;
-	static CRunExWnd g_instance;
 
 	LRESULT OnHook(CWPSTRUCT& cwps);
 	CFont * m_font;
@@ -64,10 +70,13 @@ private:
 	static HWND tbHwnd;
 
 	static const GUID guid_cfg_iPos;
+	static const GUID guid_cfg_iVis;
+	static const GUID guid_cfg_iStyle;
 
 	static cfg_int iPos;
+	static cfg_bool isVisible;
+	static cfg_int iStyle;
 
-	//static advconfig_integer_factory guid_cfg_iPos;
 private:
 	CToolbarBarRunExe tbRunExe;
 };
