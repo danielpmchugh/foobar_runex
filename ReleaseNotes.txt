@@ -8,8 +8,11 @@ Transparent text background
 Check for any memory leaks
 
 Release 0.0.9
+Improvement to retain toolbar state
 After reset button is lost
+Reordring of toolbars
 Retain toolbar state after shutting down and restarting the application. 
+Added more debug for XP issues
 
 Release 0.0.8
 Fixed bug when trying to run with XP

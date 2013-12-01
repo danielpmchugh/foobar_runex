@@ -124,57 +124,12 @@ LRESULT CRunExWnd::OnHook(CWPSTRUCT &cwps)
 {
 	CWnd * tWnd = GetRebar(); 
 
-	//if (cwps.hwnd == tWnd->GetSafeHwnd())
+	if (cwps.hwnd == tWnd->GetSafeHwnd())
 	{
 		switch (cwps.message)
 		{
-		case WM_CONTEXTMENU:
-			if (cwps.hwnd == tWnd->GetSafeHwnd())
-				SendMessage(this->m_hWnd, WM_CONTEXT_MENU_FB, 0, 0);
-			break;
-		case WM_NCHITTEST:
-		case WM_SETCURSOR:
-		case WM_ERASEBKGND:
-		case WM_PARENTNOTIFY:
-		case WM_MOUSEACTIVATE:
-		case WM_PAINT:
-		case WM_WINDOWPOSCHANGING:
-		case WM_WINDOWPOSCHANGED:
-		case WM_SIZE:
-		case WM_CHILDACTIVATE:
-		case WM_NCPAINT:
-		case WM_CAPTURECHANGED:
-		case WM_GETDLGCODE:
-		case WM_NCCALCSIZE:
-		case WM_CTLCOLORSTATIC:
-		case WM_PRINTCLIENT:
-		case WM_SETTEXT:
-		case WM_STYLECHANGING:
-		case WM_SETREDRAW:
-		case WM_STYLECHANGED:
-		case WM_COMMAND:
-		case WM_NOTIFY:
-		case WM_CTLCOLORDLG: //chec
-		case WM_CTLCOLORBTN:
-		case WM_GETTEXT:
-		case WM_GETTEXTLENGTH:
-		case WM_MOVE:
-		case WM_USER:
-		case WM_GETFONT:
-		case 0xB6:
-		case 0xBA:
-		case 404:
-		case RBN_LAYOUTCHANGED:
-		case WM_VSCROLL:
-		case WM_ENTERIDLE:
-		case WM_SYSCOMMAND:
-			break;
-		case WM_MENUSELECT:
-			char buf[12];
-			_snprintf_s(buf, 12, 12, "%X", cwps.hwnd);
-			char buf2[12];
-			_snprintf_s(buf2, 12, 12, "%X", cwps.message);
-			console::formatter() << "HWND=" << buf << "MESSAGE=" << buf2 << cwps.lParam << " " << cwps.wParam;
+			case WM_CONTEXTMENU:
+				SendMessage(this->m_hWnd, WM_CONTEXT_MENU_FB, 1, 10);
 			break;
 		}
 	}
@@ -249,67 +204,124 @@ BOOL CRunExWnd::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		  }
 	   }
 	   break;
+	
+	case WM_CONTEXT_MENU_HND:
+	{
+		HMENU hMenu = (HMENU)SendMessage((HWND) wParam, MN_GETHMENU, 0, 0);
+		DWORD errCode = GetLastError();
 
-			
-	case WM_CONTEXT_MENU_FB:
-		//Try to grab the context menu
-		console::formatter() << "Looking for context menu...";
-		contexthWnd =  FindWindowEx( NULL, NULL, MAKEINTATOM(0x8000), NULL );		
-		if (contexthWnd  != NULL)
-		{			
-			console::formatter() << "Context menu found";
-			contextWnd = CWnd::FromHandle(contexthWnd);					
+		if (hMenu) // try to get the menu handle
+		{
+			console::formatter() << "Context Menu Handle found";
+			// we have the context menu handle
+			CMenu * pMenu = CMenu::FromHandle(hMenu);
 
-			HMENU hMenu =  (HMENU) SendMessage(contexthWnd,MN_GETHMENU, 0, 0);
-			if (hMenu) // try to get the menu handle
-			{	
-				console::formatter() << "Context Menu Handle found";
-				// we have the context menu handle
-				CMenu * pMenu = CMenu::FromHandle(hMenu);			
-				
-				// Add the RunExe button to the context menu
-				if (pMenu)
-				{
-					MENUITEMINFO mii;
-				
-					mii.cbSize = sizeof(MENUITEMINFO);	
-					mii.fMask = MIIM_STRING;
-					mii.fType = MFT_STRING;
-					mii.fState = MFS_ENABLED; 					
-					mii.wID = ID_CONTEXT_MENU_RUN_EXE;
-					mii.hSubMenu = NULL;
-					mii.hbmpChecked = NULL;
-					mii.hbmpUnchecked = NULL;
-					mii.dwItemData = NULL;
-					mii.dwTypeData = _T("RunEx");
-					mii.cch = strlenT(_T("RunEx"));
-					mii.hbmpItem = NULL;
+			// Add the RunExe button to the context menu
+			if (pMenu)
+			{
+				MENUITEMINFO mii;
 
-					console::formatter() << "Inserting menu item";
+				mii.cbSize = sizeof(MENUITEMINFO);
+				mii.fMask = MIIM_STRING;
+				mii.fType = MFT_STRING;
+				mii.fState = MFS_ENABLED;
+				mii.wID = ID_CONTEXT_MENU_RUN_EXE;
+				mii.hSubMenu = NULL;
+				mii.hbmpChecked = NULL;
+				mii.hbmpUnchecked = NULL;
+				mii.dwItemData = NULL;
+				mii.dwTypeData = _T("RunEx");
+				mii.cch = strlenT(_T("RunEx"));
+				mii.hbmpItem = NULL;
 
-					pMenu->InsertMenuItemW(12,&mii,1);
-					if (tbRunExe.IsWindowVisible())
-						pMenu->CheckMenuItem(12, MF_BYPOSITION|MF_CHECKED   );
-																			
-				}
-							
-				// Subclass the menu window allowing us to be notified when menu button is clicked.
-					
-				_pS1 = new CContextMenuSub(495, 12, WM_TOOLBAR_SHOWHIDE, this->m_hWnd) ;
-				_pS1->Subclass(contexthWnd);				
+				console::formatter() << "Inserting menu item";
+
+				pMenu->InsertMenuItemW(12, &mii, 1);
+				if (tbRunExe.IsWindowVisible())
+					pMenu->CheckMenuItem(12, MF_BYPOSITION | MF_CHECKED);
 			}
+
+			// Subclass the menu window allowing us to be notified when menu button is clicked.
+
+			_pS1 = new CContextMenuSub(495, 12, WM_TOOLBAR_SHOWHIDE, this->m_hWnd);
+			_pS1->Subclass((HWND)wParam);
+
+		}
+		else if ((lParam - 1) > 0)
+		{
+			console::formatter() << "Could not find Context menu handle...checking in 100 ms " << (lParam - 1) << " tries left";
+			Sleep(100);
+			PostMessage(this->m_hWnd, WM_CONTEXT_MENU_HND, wParam, lParam - 1);
 		}
 		else
 		{
-			Sleep(100);			
-//#ifdef _DEBUG
-			console::formatter() << "Could not find Context menu...checking in 100 ms";
-//#endif
-			PostMessage(this->m_hWnd,WM_CONTEXT_MENU_FB,0,0);
-		}				
-		
+			console::formatter() << "Giving up could not find Context menu handle";
+			console::formatter() << "Error code=" << (int)errCode;
+
+			char *err;
+			if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+				NULL,
+				errCode,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
+				(LPTSTR)&err,
+				0,
+				NULL))
+			{
+
+				//TRACE("ERROR: %s: %s", msg, err);
+				static char buffer[1024];
+				_snprintf_s(buffer, sizeof(buffer), sizeof(buffer), "ERROR: %d: %s\n", errCode, err);
+				console::formatter() << buffer;
+				LocalFree(err);
+			}
+
+		}
+    }
+	break;
+
+	case WM_CONTEXT_MENU_FB:
+		//Try to grab the context menu window
+		console::formatter() << "Looking for context menu window...";
+
+		contexthWnd = FindWindowEx(NULL, NULL, MAKEINTATOM(0x8000), NULL);
+		DWORD errCode = GetLastError();
+		if (contexthWnd != NULL)
+		{
+			console::formatter() << "Context menu window found";
+			contextWnd = CWnd::FromHandle(contexthWnd);
+			PostMessage(this->m_hWnd, WM_CONTEXT_MENU_HND, (WPARAM)contexthWnd, 10);
+
+		}
+		else if ((lParam - 1) > 0)
+		{
+			console::formatter() << "Could not find Context menu window...checking in 100 ms " << (lParam - 1) << " tries left";
+			Sleep(100);
+			PostMessage(this->m_hWnd, WM_CONTEXT_MENU_FB, 1, lParam - 1);
+		}
+		else
+		{
+			console::formatter() << "Giving up could not find Context menu window";
+			console::formatter() << "Error code=" << (int)errCode;
+
+			char *err;
+			if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+				NULL,
+				errCode,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
+				(LPTSTR)&err,
+				0,
+				NULL))
+			{
+
+				//TRACE("ERROR: %s: %s", msg, err);
+				static char buffer[1024];
+				_snprintf_s(buffer, sizeof(buffer), sizeof(buffer),"ERROR: %d: %s\n", errCode, err);
+				console::formatter() << buffer;
+				LocalFree(err);
+			}
+			
+		}
 		break;
-	
 	}
 
 	// The framework will call DefWindowProc() for us.

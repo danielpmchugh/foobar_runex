@@ -6,6 +6,7 @@
 #define WM_TOOLBAR_SHOWHIDE		WM_USER + 101
 #define WM_CONTEXT_MENU_FB		WM_USER + 102
 #define WM_SAVE_CONFIG  		WM_USER + 103
+#define WM_CONTEXT_MENU_HND		WM_USER + 104
 
 #include <winsock2.h>
 
